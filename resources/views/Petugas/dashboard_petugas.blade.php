@@ -92,53 +92,69 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                #PSN20240612001
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                                Budi Santoso
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                                Pembersihan Mendalam Apartemen
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
-                                12 Juni 2025, 10:00 WIB
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    Menunggu Konfirmasi
-                                </span>
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-primary hover:text-primary-dark mr-3">Detail</a>
-                                <button class="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded">Proses</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                #PSN20240611003
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                                Siti Rahayu
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                                Bersih Rumah Harian
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
-                                11 Juni 2025, 14:30 WIB
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                    Dalam Pengerjaan
-                                </span>
-                            </td>
-                            <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-primary hover:text-primary-dark mr-3">Detail</a>
-                                <button class="text-sm bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded">Selesai</button>
-                            </td>
-                        </tr>
-                        </tbody>
+                        @forelse ($latestIncomingOrders as $order)
+                            <tr>
+                                <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    #{{ $order->id }}
+                                </td>
+                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {{ $order->user->name ?? 'N/A' }}
+                                </td>
+                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {{ $order->nama_paket ?? $order->paket->nama_paket ?? 'N/A' }}
+                                </td>
+                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
+                                    {{ \Carbon\Carbon::parse($order->tanggal)->format('d F Y') }}, {{ \Carbon\Carbon::parse($order->waktu)->format('H:i') }} WIB
+                                </td>
+                                <td class="px-3 py-4 whitespace-nowrap">
+                                    @php
+                                        $statusClass = '';
+                                        switch ($order->status) {
+                                            case 'pending':
+                                                $statusClass = 'bg-yellow-100 text-yellow-800';
+                                                break;
+                                            case 'dikonfirmasi':
+                                                $statusClass = 'bg-purple-100 text-purple-800';
+                                                break;
+                                            case 'diproses':
+                                                $statusClass = 'bg-blue-100 text-blue-800';
+                                                break;
+                                            case 'selesai':
+                                                $statusClass = 'bg-green-100 text-green-800';
+                                                break;
+                                            case 'dibatalkan':
+                                                $statusClass = 'bg-red-100 text-red-800';
+                                                break;
+                                            default:
+                                                $statusClass = 'bg-gray-100 text-gray-800';
+                                                break;
+                                        }
+                                    @endphp
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
+                                        {{ ucfirst($order->status) }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ route('order.detail', $order->id) }}" class="text-primary hover:text-primary-dark mr-3">Detail</a>
+                                    @if ($order->status == 'pending')
+                                        <button onclick="updateOrderStatus({{ $order->id }}, 'dikonfirmasi')" class="text-sm bg-purple-500 hover:bg-purple-600 text-white py-1 px-2 rounded">Konfirmasi</button>
+                                    @elseif ($order->status == 'dikonfirmasi')
+                                        <button onclick="updateOrderStatus({{ $order->id }}, 'diproses')" class="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded">Proses</button>
+                                    @elseif ($order->status == 'diproses')
+                                        <button onclick="updateOrderStatus({{ $order->id }}, 'selesai')" class="text-sm bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded">Selesai</button>
+                                    @endif
+                                    {{-- Add cancel button if needed --}}
+                                    {{-- <button onclick="updateOrderStatus({{ $order->id }}, 'dibatalkan')" class="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded ml-2">Batalkan</button> --}}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 text-center">
+                                    Tidak ada pesanan masuk terbaru.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
                 </table>
             </div>
             <div class="mt-4 text-center sm:text-right">
@@ -184,4 +200,35 @@
         </div>
 
     </div>
+
+    {{-- Script untuk AJAX update status --}}
+    <script>
+        function updateOrderStatus(orderId, newStatus) {
+            if (!confirm(`Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus}?`)) {
+                return;
+            }
+
+            fetch(`/petugas/pesanan/${orderId}/update-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload(); // Refresh halaman untuk melihat perubahan
+                } else {
+                    alert('Gagal memperbarui status: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat memperbarui status.');
+            });
+        }
+    </script>
 @endsection

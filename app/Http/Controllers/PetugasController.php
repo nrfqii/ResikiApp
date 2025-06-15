@@ -2,41 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pesanan; // Pastikan nama model Anda adalah Pesanan
+use App\Models\Pesanan; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon; // Untuk filter tanggal di dashboard
+use Carbon\Carbon; 
+use App\Models\User; 
+use App\Models\PaketJasa; 
 
 class PetugasController extends Controller
 {
-    /**
-     * Menampilkan dashboard petugas dengan ringkasan statistik.
-     */
+
     public function dashboard()
     {
-        // Memastikan hanya pengguna dengan peran 'petugas' yang bisa mengakses
         if (Auth::user()->role !== 'petugas') {
             abort(403, 'Akses hanya untuk petugas.');
         }
 
-        // Menghitung statistik untuk dashboard
-        // Sesuaikan nilai ENUM 'status' dengan skema tabel Anda: 'pending', 'diproses', 'selesai', 'batal'
-        $newOrdersCount = Pesanan::where('status', 'pending')->count(); // Pesanan baru (status 'pending')
-        $inProgressOrdersCount = Pesanan::where('status', 'diproses')->count(); // Pesanan sedang diproses
+        $newOrdersCount = Pesanan::where('status', Pesanan::STATUS_PENDING)->count();
+        $inProgressOrdersCount = Pesanan::whereIn('status', [Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES])->count(); 
 
         // Pesanan selesai hari ini
-        $completedTodayOrdersCount = Pesanan::where('status', 'selesai')
+        $completedTodayOrdersCount = Pesanan::where('status', Pesanan::STATUS_SELESAI)
                                             ->whereDate('updated_at', Carbon::today())
                                             ->count();
 
-        // Mengambil beberapa pesanan masuk terbaru untuk ditampilkan di dashboard
-        // Eager load relasi 'user' dan 'paketJasa' (sesuai nama relasi di model Pesanan)
-        $latestIncomingOrders = Pesanan::with(['user', 'paketJasa']) // Pastikan relasi 'paketJasa' ada di model Pesanan
-                                        ->whereIn('status', ['pending', 'diproses']) // Status yang relevan untuk pesanan masuk
-                                        ->orderBy('tanggal', 'asc') // Urutkan berdasarkan tanggal & waktu
-                                        ->orderBy('waktu', 'asc')
-                                        ->limit(5) // Ambil 5 terbaru
-                                        ->get();
+        $latestIncomingOrders = Pesanan::with(['user', 'paket']) 
+                                            ->whereIn('status', [Pesanan::STATUS_PENDING, Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES]) // Status yang relevan untuk pesanan masuk
+                                            ->orderBy('tanggal', 'asc') // Urutkan berdasarkan tanggal & waktu
+                                            ->orderBy('waktu', 'asc')
+                                            ->limit(5) // Ambil 5 terbaru
+                                            ->get();
 
         // Mengirim data ke view dashboard
         return view('petugas.dashboard_petugas', compact(
@@ -60,9 +55,9 @@ class PetugasController extends Controller
         $pesanan = Pesanan::findOrFail($id);
 
         // Validasi status baru
-        // Pastikan nilai 'in' sesuai dengan ENUM di database Anda: 'pending', 'diproses', 'selesai', 'batal'
+        // Pastikan nilai 'in' sesuai dengan ENUM di database Anda: 'pending', 'dikonfirmasi', 'diproses', 'selesai', 'dibatalkan'
         $request->validate([
-            'status' => 'required|string|in:pending,diproses,selesai,batal'
+            'status' => 'required|string|in:pending,dikonfirmasi,diproses,selesai,dibatalkan'
         ]);
 
         $pesanan->update([
@@ -84,18 +79,15 @@ class PetugasController extends Controller
         }
 
         // Ambil semua pesanan yang statusnya 'pending' atau 'diproses'
-        $orders = Pesanan::with(['user', 'paketJasa']) // Eager load relasi 'user' dan 'paketJasa'
-                         ->whereIn('status', ['pending', 'diproses'])
-                         ->orderBy('tanggal', 'asc') // Urutkan berdasarkan tanggal & waktu
-                         ->orderBy('waktu', 'asc')
-                         ->paginate(10); // Gunakan paginasi
+        $orders = Pesanan::with(['user', 'paket']) 
+                           ->whereIn('status', [Pesanan::STATUS_PENDING, Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES])
+                           ->orderBy('tanggal', 'asc') 
+                           ->orderBy('waktu', 'asc')
+                           ->paginate(10); 
 
         return view('petugas.pesanan', compact('orders'));
     }
 
-    /**
-     * Menampilkan riwayat pesanan (yang sudah selesai atau dibatalkan).
-     */
     public function riwayatPesanan()
     {
         // Memastikan hanya pengguna dengan peran 'petugas' yang bisa mengakses
@@ -103,12 +95,23 @@ class PetugasController extends Controller
             abort(403, 'Akses hanya untuk petugas.');
         }
 
-        // Ambil semua pesanan yang statusnya 'selesai' atau 'batal'
-        $historicalOrders = Pesanan::with(['user', 'paketJasa']) // Eager load relasi 'user' dan 'paketJasa'
-                                   ->whereIn('status', ['selesai', 'batal'])
-                                   ->orderBy('updated_at', 'desc') // Urutkan dari yang terbaru selesai/dibatalkan
-                                   ->paginate(10); // Gunakan paginasi
+        // Ambil semua pesanan yang statusnya 'selesai' atau 'dibatalkan'
+        $historicalOrders = Pesanan::with(['user', 'paket']) 
+                                       ->whereIn('status', [Pesanan::STATUS_SELESAI, Pesanan::STATUS_DIBATALKAN])
+                                       ->orderBy('updated_at', 'desc') 
+                                       ->paginate(10); 
 
         return view('petugas.riwayat', compact('historicalOrders'));
+    }
+
+    // You might need a method to show order details, for the "Detail" button
+    public function showOrderDetail($id)
+    {
+        if (Auth::user()->role !== 'petugas') {
+            abort(403, 'Akses hanya untuk petugas.');
+        }
+
+        $order = Pesanan::with(['user', 'paket', 'ulasan'])->findOrFail($id);
+        return view('petugas.order_detail', compact('order')); 
     }
 }

@@ -80,7 +80,7 @@
                                 @endif
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('petugas.pesanan.detail', $order->id) }}" class="text-primary hover:text-primary-dark">Detail</a>
+                                <a href="{{ route('order.detail', $order->id) }}" class="text-primary hover:text-primary-dark">Detail</a>
                             </td>
                         </tr>
                     @empty

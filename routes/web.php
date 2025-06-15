@@ -18,12 +18,17 @@ Route::get('/dashboard/konsumen', [MasyarakatController::class, 'dashboard'])->n
 Route::get('/ulasan', [UlasanController::class, 'index'])->name('ulasan.index');
 Route::post('/ulasan', [UlasanController::class, 'store'])->name('ulasan.store');
 
+
+//petugas
 Route::get('/dashboard/petugas', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
 Route::post('/petugas/pesanan/{id}/update', [PetugasController::class, 'updateStatus'])->name('petugas.update');
 Route::get('/petugas/pesanan', [PetugasController::class, 'pesananMasuk'])->name('petugas.pesanan.masuk');
-// Route::get('/pesanan/{id}', [PetugasController::class, 'showPesananDetail'])->name('petugas.pesanan.detail'); 
 Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])->name('petugas.pesanan.update_status');
 Route::get('/petugas/riwayat', [PetugasController::class, 'riwayatPesanan'])->name('petugas.riwayat');
+Route::get('/pesanan/{id}/detail', [PetugasController::class, 'showOrderDetail'])->name('order.detail'); 
+
+// Route::get('/pesanan/{id}', [PetugasController::class, 'showPesananDetail'])->name('petugas.pesanan.detail'); 
+// Route::post('/pesanan/{id}/update-status', [PetugasController::class, 'updateStatus'])->name('order.updateStatus');
 
 
 // Auth

@@ -28,14 +28,14 @@ class MasyarakatController extends Controller
                                        ->where('status', Pesanan::STATUS_SELESAI)
                                        ->count();
 
-        // Mengambil jumlah ulasan yang diberikan oleh user ini
+        // Mengambil jumlah ulasan 
         $reviewsCount = Ulasan::where('user_id', $userId)
                               ->count();
 
-        // Mengambil pesanan terbaru (misalnya 5 pesanan terakhir)
+        // Mengambil pesanan terbaru 
         $recentOrders = Pesanan::where('user_id', $userId)
                                ->orderBy('created_at', 'desc')
-                               ->limit(5) // Batasi jumlah pesanan yang ditampilkan
+                               ->limit(5) 
                                ->get();
 
         // Melewatkan data ke view

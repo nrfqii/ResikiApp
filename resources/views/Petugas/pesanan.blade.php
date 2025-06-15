@@ -87,7 +87,7 @@
                                 @endif
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('petugas.pesanan.detail', $order->id) }}" class="text-primary hover:text-primary-dark mr-3">Detail</a>
+                                <a href="{{ route('order.detail', $order->id) }}" class="text-primary hover:text-primary-dark mr-3">Detail</a>
                                 @if($order->status == 'menunggu konfirmasi')
                                     <button onclick="updateOrderStatus({{ $order->id }}, 'dalam pengerjaan')" class="text-xs bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded-full smooth-transition">Proses</button>
                                 @elseif($order->status == 'dalam pengerjaan')
