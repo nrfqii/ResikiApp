@@ -11,7 +11,6 @@ use App\Models\PaketJasa;
 
 class PetugasController extends Controller
 {
-
     public function dashboard()
     {
         if (Auth::user()->role !== 'petugas') {
@@ -26,92 +25,188 @@ class PetugasController extends Controller
                                             ->whereDate('updated_at', Carbon::today())
                                             ->count();
 
-        $latestIncomingOrders = Pesanan::with(['user', 'paket']) 
-                                            ->whereIn('status', [Pesanan::STATUS_PENDING, Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES]) // Status yang relevan untuk pesanan masuk
-                                            ->orderBy('tanggal', 'asc') // Urutkan berdasarkan tanggal & waktu
+        $latestIncomingOrders = Pesanan::with(['user', 'paketJasa']) 
+                                            ->whereIn('status', [Pesanan::STATUS_PENDING, Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES])
+                                            ->orderBy('tanggal', 'asc')
                                             ->orderBy('waktu', 'asc')
-                                            ->limit(5) // Ambil 5 terbaru
+                                            ->limit(5)
                                             ->get();
 
-        // Mengirim data ke view dashboard
         return view('petugas.dashboard_petugas', compact(
             'newOrdersCount',
             'inProgressOrdersCount',
             'completedTodayOrdersCount',
-            'latestIncomingOrders' // Data tabel pesanan terbaru di dashboard
+            'latestIncomingOrders'
         ));
     }
 
-    /**
-     * Memperbarui status pesanan.
-     */
-    public function updateStatus(Request $request, $id)
-    {
-        // Memastikan hanya pengguna dengan peran 'petugas' yang bisa mengakses
-        if (Auth::user()->role !== 'petugas') {
-            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     if (Auth::user()->role !== 'petugas') {
+    //         return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+    //     }
+
+    //     $pesanan = Pesanan::findOrFail($id);
+
+    //     $request->validate([
+    //         'status' => 'required|string|in:pending,dikonfirmasi,diproses,selesai,dibatalkan'
+    //     ]);
+
+    //     $pesanan->update([
+    //         'status' => $request->status,
+    //         'petugas_id' => Auth::id()
+    //     ]);
+
+    //     return response()->json(['success' => true, 'message' => 'Status pesanan berhasil diperbarui.']);
+    // }
+
+    public function pesananMasuk(Request $request)
+{
+    if (Auth::user()->role !== 'petugas') {
+        abort(403, 'Akses hanya untuk petugas.');
+    }
+
+    $orders = Pesanan::with(['user', 'paketJasa'])
+        ->whereIn('status', [Pesanan::STATUS_PENDING, Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES])
+        ->when($request->search, function($query) use ($request) {
+            $query->where(function($q) use ($request) {
+                $q->where('id', 'like', '%'.$request->search.'%')
+                  ->orWhereHas('user', function($user) use ($request) {
+                      $user->where('name', 'like', '%'.$request->search.'%');
+                  })
+                  ->orWhereHas('paketJasa', function($paket) use ($request) {
+                      $paket->where('nama_paket', 'like', '%'.$request->search.'%');
+                  });
+            });
+        })
+        ->when($request->status, function($query) use ($request) {
+            $query->where('status', $request->status);
+        })
+        ->when($request->bulan, function($query) use ($request) {
+            $query->whereMonth('tanggal', Carbon::parse($request->bulan)->month)
+                  ->whereYear('tanggal', Carbon::parse($request->bulan)->year);
+        })
+        ->orderBy('tanggal', 'asc')
+        ->orderBy('waktu', 'asc')
+        ->paginate(10);
+
+    return view('petugas.pesanan', compact('orders'));
+}
+
+public function updateStatus(Request $request, $id)
+{
+    if (Auth::user()->role !== 'petugas') {
+        return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+    }
+
+    $request->validate([
+        'status' => 'required|in:pending,dikonfirmasi,diproses,selesai,dibatalkan',
+        'catatan' => 'nullable|string|max:255'
+    ]);
+
+    try {
+        $pesanan = Pesanan::findOrFail($id);
+        
+        // Validasi status transition
+        $validTransitions = [
+            'pending' => ['dikonfirmasi', 'dibatalkan'],
+            'dikonfirmasi' => ['diproses', 'dibatalkan'],
+            'diproses' => ['selesai', 'dibatalkan']
+        ];
+        
+        if (!in_array($request->status, $validTransitions[$pesanan->status] ?? [])) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Transisi status tidak valid.'
+            ], 400);
         }
 
-        $pesanan = Pesanan::findOrFail($id);
+        // Jika status dibatalkan, hapus data pesanan
+        if ($request->status === 'dibatalkan') {
+            // Log untuk audit trail jika diperlukan
+            \Log::info("Pesanan #{$id} dibatalkan oleh petugas " . Auth::user()->name);
+            
+            // Hapus relasi ulasan jika ada
+            $pesanan->ulasan()->delete();
+            
+            // Hapus pesanan
+            $pesanan->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan berhasil ditolak dan dihapus dari sistem.'
+            ]);
+        }
 
-        // Validasi status baru
-        // Pastikan nilai 'in' sesuai dengan ENUM di database Anda: 'pending', 'dikonfirmasi', 'diproses', 'selesai', 'dibatalkan'
-        $request->validate([
-            'status' => 'required|string|in:pending,dikonfirmasi,diproses,selesai,dibatalkan'
-        ]);
-
+        // Update status untuk selain dibatalkan
         $pesanan->update([
             'status' => $request->status,
-            'petugas_id' => Auth::id() // Memperbarui petugas_id dengan ID petugas yang sedang login
+            'petugas_id' => Auth::id(),
+            'catatan' => $request->catatan ?? null,
+            'updated_at' => now()
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Status pesanan berhasil diperbarui.']);
+        $statusMessages = [
+            'dikonfirmasi' => 'Pesanan berhasil dikonfirmasi.',
+            'diproses' => 'Pesanan berhasil diproses.',
+            'selesai' => 'Pesanan berhasil diselesaikan.'
+        ];
+
+        return response()->json([
+            'success' => true,
+            'message' => $statusMessages[$request->status] ?? 'Status pesanan berhasil diperbarui!',
+            'order_id' => $id,
+            'new_status' => $request->status
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error("Error updating order status: " . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
+        ], 500);
+    }
+}
+
+public function riwayatPesanan(Request $request)
+{
+    if (Auth::user()->role !== 'petugas') {
+        abort(403, 'Akses hanya untuk petugas.');
     }
 
-    /**
-     * Menampilkan daftar semua pesanan masuk (pending dan diproses).
-     */
-    public function pesananMasuk()
-    {
-        // Memastikan hanya pengguna dengan peran 'petugas' yang bisa mengakses
-        if (Auth::user()->role !== 'petugas') {
-            abort(403, 'Akses hanya untuk petugas.');
-        }
+    $historicalOrders = Pesanan::with(['user', 'paketJasa', 'petugas']) 
+        ->whereIn('status', [Pesanan::STATUS_SELESAI])
+        ->when($request->search, function($query) use ($request) {
+            $query->where(function($q) use ($request) {
+                $q->where('id', 'like', '%'.$request->search.'%')
+                  ->orWhereHas('user', function($user) use ($request) {
+                      $user->where('name', 'like', '%'.$request->search.'%');
+                  })
+                  ->orWhereHas('paketJasa', function($paket) use ($request) {
+                      $paket->where('nama_paket', 'like', '%'.$request->search.'%');
+                  });
+            });
+        })
+        ->when($request->bulan, function($query) use ($request) {
+            $query->whereMonth('tanggal', Carbon::parse($request->bulan)->month)
+                  ->whereYear('tanggal', Carbon::parse($request->bulan)->year);
+        })
+        ->orderBy('updated_at', 'desc') 
+        ->paginate(10); 
 
-        // Ambil semua pesanan yang statusnya 'pending' atau 'diproses'
-        $orders = Pesanan::with(['user', 'paket']) 
-                           ->whereIn('status', [Pesanan::STATUS_PENDING, Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES])
-                           ->orderBy('tanggal', 'asc') 
-                           ->orderBy('waktu', 'asc')
-                           ->paginate(10); 
+    return view('petugas.riwayat', compact('historicalOrders'));
+}
 
-        return view('petugas.pesanan', compact('orders'));
+public function showOrderDetail($id)
+{
+    if (Auth::user()->role !== 'petugas') {
+        abort(403, 'Akses hanya untuk petugas.');
     }
 
-    public function riwayatPesanan()
-    {
-        // Memastikan hanya pengguna dengan peran 'petugas' yang bisa mengakses
-        if (Auth::user()->role !== 'petugas') {
-            abort(403, 'Akses hanya untuk petugas.');
-        }
-
-        // Ambil semua pesanan yang statusnya 'selesai' atau 'dibatalkan'
-        $historicalOrders = Pesanan::with(['user', 'paket']) 
-                                       ->whereIn('status', [Pesanan::STATUS_SELESAI, Pesanan::STATUS_DIBATALKAN])
-                                       ->orderBy('updated_at', 'desc') 
-                                       ->paginate(10); 
-
-        return view('petugas.riwayat', compact('historicalOrders'));
-    }
-
-    // You might need a method to show order details, for the "Detail" button
-    public function showOrderDetail($id)
-    {
-        if (Auth::user()->role !== 'petugas') {
-            abort(403, 'Akses hanya untuk petugas.');
-        }
-
-        $order = Pesanan::with(['user', 'paket', 'ulasan'])->findOrFail($id);
-        return view('petugas.order_detail', compact('order')); 
-    }
+    $order = Pesanan::with(['user', 'paketJasa', 'ulasan', 'petugas']) 
+           ->findOrFail($id);
+           
+    return view('petugas.order_detail', compact('order')); 
+}
 }

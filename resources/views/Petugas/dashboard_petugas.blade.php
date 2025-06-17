@@ -135,7 +135,7 @@
                                     </span>
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('order.detail', $order->id) }}" class="text-primary hover:text-primary-dark mr-3">Detail</a>
+                                    <a href="{{ route('petugas.pesanan.detail', $order->id) }}" class="text-primary hover:text-primary-dark mr-3">Detail</a>
                                     @if ($order->status == 'pending')
                                         <button onclick="updateOrderStatus({{ $order->id }}, 'dikonfirmasi')" class="text-sm bg-purple-500 hover:bg-purple-600 text-white py-1 px-2 rounded">Konfirmasi</button>
                                     @elseif ($order->status == 'dikonfirmasi')
@@ -193,8 +193,13 @@
                 <p class="text-base text-white/90 mb-4">
                     Temukan panduan atau hubungi admin jika ada masalah.
                 </p>
-                <a href="/petugas/bantuan" class="w-full sm:w-auto bg-white text-primary px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition duration-200 text-sm flex items-center justify-center">
-                    Akses Bantuan
+                {{-- Mengarahkan ke WhatsApp dengan nomor admin --}}
+                <a href="https://wa.me/6289898087432" target="_blank" class="w-full sm:w-auto bg-white text-primary px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition duration-200 text-sm flex items-center justify-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        {{-- SVG Icon WhatsApp (Anda bisa menggantinya dengan ikon WhatsApp yang lebih sesuai jika punya) --}}
+                        <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.4.92 4.97l-1.3 4.74 4.86-1.28c1.47.4 3.03.62 4.43.62h.003c5.46 0 9.91-4.45 9.91-9.91s-4.45-9.91-9.91-9.91zm.003 1.95c4.32 0 7.82 3.5 7.82 7.82s-3.5 7.82-7.82 7.82c-1.37 0-2.67-.36-3.83-1.04l-.27-.16-2.81.74.75-2.73-.18-.28c-.73-1.12-1.14-2.42-1.14-3.79 0-4.32 3.5-7.82 7.82-7.82zm3.765 10.37c-.12-.06-.7-.34-.81-.38-.11-.04-.19-.06-.27.06-.09.12-.34.38-.41.46-.08.09-.16.1-.28.04-.11-.06-.47-.17-1.12-.69-.82-.62-1.37-1.37-1.53-1.63-.16-.26-.01-.38.07-.46.07-.07.16-.18.23-.29.07-.11.07-.19.05-.26-.02-.07-.09-.2-.18-.46-.09-.26-.18-.22-.25-.22-.06 0-.13-.01-.2-.01-.73.01-1.28.36-1.74.8-1.5 1.45-.63 2.87.21 3.56.84.7 1.8 1.05 2.89 1.05 1.07 0 2.05-.29 2.75-.72.6-.37.98-.6.13-1.03z"></path>
+                    </svg>
+                    Akses Bantuan via WhatsApp
                 </a>
             </div>
         </div>
