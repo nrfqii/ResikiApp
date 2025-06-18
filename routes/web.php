@@ -13,7 +13,7 @@ Route::post('/pesan/store', [PesananController::class, 'store'])->name('pesan.st
 Route::get('/pesan/{id}', [PesananController::class, 'show'])->name('pesan.show')->middleware('auth');
 Route::get('/riwayat-pesanan', [PesananController::class, 'riwayat'])->name('pesan.riwayat')->middleware('auth');
 Route::get('/dashboard/konsumen', [MasyarakatController::class, 'dashboard'])->name('dashboard');
-
+Route::get('/konsumen/pesanan/{id}/detail', [PesananController::class, 'showDetail'])->name('pesanan.detail');
 // Ulasan
 Route::get('/ulasan', [UlasanController::class, 'index'])->name('ulasan.index');
 Route::post('/ulasan', [UlasanController::class, 'store'])->name('ulasan.store');

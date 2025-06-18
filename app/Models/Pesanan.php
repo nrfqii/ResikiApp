@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon; // Pastikan Carbon diimpor
 
 class Pesanan extends Model
 {
@@ -12,31 +13,32 @@ class Pesanan extends Model
 
     protected $table = 'pesanan';
     
-    protected $fillable = [
-        'user_id',
-        'petugas_id',
-        'paket_id',
-        'custom_request',
-        'status',
-        'alamat_lokasi',
-        'tanggal',
-        'waktu',
-        'catatan',
-        'harga_total'
-    ];
+        protected $fillable = [
+            'user_id',
+            'petugas_id',
+            'paket_id',
+            'nama_paket',           
+            'harga_paket',          
+            'custom_request',
+            'status',
+            'alamat_lokasi',
+            'tanggal',
+            'waktu',
+            'total_harga',          
+            'gambar'                
+        ];
 
-    protected $dates = ['deleted_at'];
+    protected $dates = ['deleted_at']; 
 
-    // Define status constants for better readability and maintainability
     const STATUS_PENDING = 'pending';
     const STATUS_DIKONFIRMASI = 'dikonfirmasi';
     const STATUS_DIPROSES = 'diproses';
     const STATUS_SELESAI = 'selesai';
-    const STATUS_BATAL = 'batal';
+    const STATUS_BATAL = 'batal'; 
     const STATUS_DIBATALKAN = 'dibatalkan';
 
-    // Status yang dapat ditampilkan
-    public static function getStatusLabels()
+    
+    public static function getStatusLabels(): array
     {
         return [
             self::STATUS_PENDING => 'Menunggu Konfirmasi',
@@ -48,15 +50,19 @@ class Pesanan extends Model
         ];
     }
 
-    // Method untuk mendapatkan label status
-    public function getStatusLabelAttribute()
+    /**
+     * Accessor untuk mendapatkan label status pesanan.
+     */
+    public function getStatusLabelAttribute(): string
     {
         $labels = self::getStatusLabels();
         return $labels[$this->status] ?? ucfirst($this->status);
     }
 
-    // Method untuk mendapatkan warna badge status
-    public function getStatusColorAttribute()
+    /**
+     * Accessor untuk mendapatkan warna badge status pesanan (untuk tampilan UI).
+     */
+    public function getStatusColorAttribute(): string
     {
         $colors = [
             self::STATUS_PENDING => 'bg-yellow-100 text-yellow-800',
@@ -70,62 +76,108 @@ class Pesanan extends Model
         return $colors[$this->status] ?? 'bg-gray-100 text-gray-800';
     }
 
-    // Scope untuk pesanan aktif (tidak dibatalkan)
+    /**
+     * Scope query untuk mendapatkan pesanan aktif (tidak dibatalkan atau selesai).
+     */
     public function scopeActive($query)
     {
-        return $query->whereNotIn('status', [self::STATUS_BATAL, self::STATUS_DIBATALKAN]);
+        return $query->whereNotIn('status', [self::STATUS_BATAL, self::STATUS_DIBATALKAN, self::STATUS_SELESAI]);
     }
 
-    // Scope untuk pesanan yang sedang berjalan
+    /**
+     * Scope query untuk mendapatkan pesanan yang sedang berjalan.
+     */
     public function scopeInProgress($query)
     {
         return $query->whereIn('status', [self::STATUS_PENDING, self::STATUS_DIKONFIRMASI, self::STATUS_DIPROSES]);
     }
 
-    // Scope untuk pesanan selesai
+    /**
+     * Scope query untuk mendapatkan pesanan yang sudah selesai.
+     */
     public function scopeCompleted($query)
     {
         return $query->where('status', self::STATUS_SELESAI);
     }
 
-    // Relasi ke User (Konsumen)
+    /*
+    |--------------------------------------------------------------------------
+    | Relasi Model
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Relasi dengan model User (untuk Konsumen yang membuat pesanan).
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Relasi ke User (Petugas)
+    /**
+     * Relasi dengan model User (untuk Petugas yang ditugaskan).
+     */
     public function petugas()
     {
         return $this->belongsTo(User::class, 'petugas_id');
     }
 
-    // Relasi ke PaketJasa
+    /**
+     * Relasi dengan model PaketJasa (layanan yang dipesan).
+     */
     public function paketJasa()
     {
         return $this->belongsTo(PaketJasa::class, 'paket_id');
     }
 
-    // Relasi ke Ulasan (satu pesanan bisa memiliki satu ulasan)
+    /**
+     * Relasi dengan model Ulasan (satu pesanan bisa memiliki satu ulasan).
+     */
     public function ulasan()
     {
         return $this->hasOne(Ulasan::class, 'pesanan_id');
     }
 
-    // Mutator untuk format tanggal
+    /*
+    |--------------------------------------------------------------------------
+    | Mutator & Accessor
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Mutator untuk memastikan format tanggal sebelum disimpan ke DB.
+     */
     public function setTanggalAttribute($value)
     {
-        $this->attributes['tanggal'] = date('Y-m-d', strtotime($value));
+        $this->attributes['tanggal'] = Carbon::parse($value)->format('Y-m-d');
     }
 
-    // Accessor untuk format tanggal
-    public function getTanggalFormattedAttribute()
+    /**
+     * Accessor untuk mendapatkan tanggal dalam format 'd F Y'.
+     */
+    public function getTanggalFormattedAttribute(): string
     {
-        return \Carbon\Carbon::parse($this->tanggal)->format('d M Y');
+        return Carbon::parse($this->tanggal)->translatedFormat('d F Y');
     }
 
-    // Method untuk cek apakah bisa diupdate statusnya
-    public function canUpdateStatus($newStatus)
+    /**
+     * Accessor untuk mendapatkan waktu dalam format 'HH:MM'.
+     */
+    public function getWaktuFormattedAttribute(): string
+    {
+        return Carbon::parse($this->waktu)->format('H:i');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Metode Bisnis Logika
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Mengecek apakah status pesanan bisa diupdate ke status baru.
+     */
+    public function canUpdateStatus(string $newStatus): bool
     {
         $validTransitions = [
             self::STATUS_PENDING => [self::STATUS_DIKONFIRMASI, self::STATUS_DIBATALKAN],
@@ -136,20 +188,26 @@ class Pesanan extends Model
         return in_array($newStatus, $validTransitions[$this->status] ?? []);
     }
 
-    // Method untuk cek apakah pesanan sudah selesai
-    public function isCompleted()
+    /**
+     * Mengecek apakah pesanan sudah selesai.
+     */
+    public function isCompleted(): bool
     {
         return $this->status === self::STATUS_SELESAI;
     }
 
-    // Method untuk cek apakah pesanan dibatalkan
-    public function isCancelled()
+    /**
+     * Mengecek apakah pesanan dibatalkan.
+     */
+    public function isCancelled(): bool
     {
         return in_array($this->status, [self::STATUS_BATAL, self::STATUS_DIBATALKAN]);
     }
 
-    // Method untuk cek apakah pesanan masih aktif
-    public function isActive()
+    /**
+     * Mengecek apakah pesanan masih aktif (belum selesai atau dibatalkan).
+     */
+    public function isActive(): bool
     {
         return !$this->isCancelled() && !$this->isCompleted();
     }

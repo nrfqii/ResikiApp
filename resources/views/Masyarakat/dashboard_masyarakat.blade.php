@@ -71,10 +71,10 @@
             @else
                 {{-- Tampilan Mobile --}}
                 <div class="block md:hidden space-y-4">
-                    @foreach ($recentOrders as $order)
+                    @foreach ($recentOrders as $index => $order)
                         <div class="border border-gray-200 rounded-xl p-4">
                             <div class="flex justify-between items-center mb-2">
-                                <p class="text-sm font-medium text-gray-900">#{{ $order->id }}</p>
+                                <p class="text-sm font-medium text-gray-900">No. {{ $index + 1 }}</p> {{-- Changed from $order->id to $index + 1 --}}
                                 @php
                                     $statusClass = '';
                                     switch ($order->status) {
@@ -98,7 +98,7 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Pesanan</th>
+                                <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th> {{-- Changed from ID Pesanan to No. --}}
                                 <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Layanan</th>
                                 <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
                                 <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -106,9 +106,9 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach ($recentOrders as $order)
+                            @foreach ($recentOrders as $index => $order)
                                 <tr>
-                                    <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ $order->id }}</td>
+                                    <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $index + 1 }}</td> {{-- Changed from $order->id to $index + 1 --}}
                                     <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">{{ $order->paketJasa->nama_paket ?? $order->custom_request }}</td>
                                     <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">{{ \Carbon\Carbon::parse($order->tanggal)->format('d F Y') }}</td>
                                     <td class="px-3 py-4 whitespace-nowrap">
@@ -170,12 +170,90 @@
             </div>
         </div>
     </div>
+{{-- Modal for Order Details --}}
+<div id="orderDetailModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-2xl bg-white">
+        {{-- Modal header --}}
+        <div class="flex justify-between items-center pb-3 border-b">
+            <h3 class="text-xl font-bold text-gray-800">Detail Pesanan <span id="modalOrderId"></span></h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
 
+        {{-- Loading spinner --}}
+        <div id="loadingSpinner" class="py-8 flex justify-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+
+        {{-- Error message --}}
+        <div id="errorModalMessage" class="hidden py-8 text-center text-red-500">
+            Gagal memuat detail pesanan. Silakan coba lagi.
+        </div>
+
+        {{-- Modal content --}}
+        <div id="modalContent" class="py-4 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Layanan</p>
+                    <p class="font-medium" id="modalService"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Status</p>
+                    <p class="font-medium" id="modalStatus"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Tanggal</p>
+                    <p class="font-medium" id="modalDate"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Waktu</p>
+                    <p class="font-medium" id="modalTime"></p>
+                </div>
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500">Lokasi</p>
+                    <p class="font-medium" id="modalLocation"></p>
+                </div>
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500">Catatan Khusus</p>
+                    <p class="font-medium" id="modalCustomRequest"></p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Harga</p>
+                    <p class="font-medium" id="modalPrice"></p>
+                </div>
+                </div>
+
+            {{-- Review section (hidden by default) --}}
+            <div id="modalReviewSection" class="hidden pt-4 border-t mt-4">
+                <h4 class="font-bold text-gray-800 mb-2">Ulasan Anda</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Rating</p>
+                        <p class="font-medium" id="modalRating"></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-sm text-gray-500">Komentar</p>
+                        <p class="font-medium" id="modalComment"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Modal footer --}}
+        <div class="flex justify-end pt-4 border-t">
+            <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
-    // Pastikan fungsi showOrderDetail dan closeModal juga tersedia di sini
     const orderDetailModal = document.getElementById('orderDetailModal');
     const modalContent = document.getElementById('modalContent');
     const loadingSpinner = document.getElementById('loadingSpinner');
@@ -185,11 +263,10 @@
         orderDetailModal.classList.remove('hidden');
         loadingSpinner.classList.remove('hidden');
         errorModalMessage.classList.add('hidden');
-        modalContent.querySelectorAll('span').forEach(span => span.textContent = ''); // Bersihkan konten sebelumnya
-        document.getElementById('modalReviewSection').classList.add('hidden'); // Sembunyikan bagian ulasan
+        modalContent.querySelectorAll('p[id^="modal"]').forEach(p => p.textContent = ''); // Clear previous content, targetting paragraphs with modal IDs
+        document.getElementById('modalReviewSection').classList.add('hidden'); // Hide review section
 
-        // Menggunakan route name yang baru
-        fetch(`/konsumen/pesanan/${orderId}/detail-popup`)
+        fetch(`/konsumen/pesanan/${orderId}/detail`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -198,15 +275,15 @@
             })
             .then(data => {
                 loadingSpinner.classList.add('hidden');
-                document.getElementById('modalOrderId').textContent = '#' + data.id;
+                document.getElementById('modalOrderId').textContent = '#' + data.id; // Still show original ID in modal header
                 document.getElementById('modalService').textContent = data.layanan;
                 document.getElementById('modalStatus').textContent = data.status;
                 document.getElementById('modalDate').textContent = data.tanggal;
                 document.getElementById('modalTime').textContent = data.waktu;
                 document.getElementById('modalLocation').textContent = data.alamat_lokasi;
                 document.getElementById('modalCustomRequest').textContent = data.catatan || '-';
-                document.getElementById('modalPrice').textContent = data.harga;
-                document.getElementById('modalPetugas').textContent = data.petugas;
+                document.getElementById('modalPrice').textContent = data.total_harga; 
+                // document.getElementById('modalPetugas').textContent = data.petugas;
 
                 if (data.rating !== null && data.komentar_ulasan !== null) {
                     document.getElementById('modalRating').textContent = data.rating;
@@ -225,7 +302,7 @@
         orderDetailModal.classList.add('hidden');
     }
 
-    // Tutup modal jika klik di luar konten modal
+    // Close modal when clicking outside
     orderDetailModal.addEventListener('click', function(event) {
         if (event.target === orderDetailModal) {
             closeModal();
