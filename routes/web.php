@@ -26,6 +26,7 @@ Route::get('/petugas/riwayat', [PetugasController::class, 'riwayatPesanan'])->na
 Route::get('/petugas/pesanan/{id}/detail', [PetugasController::class, 'showOrderDetail'])->name('petugas.pesanan.detail');
 Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])->name('petugas.pesanan.update-status');
 Route::get('/pesanan/{id}/info', [PetugasController::class, 'getOrderInfo'])->name('petugas.pesanan.info');
+Route::get('/petugas/pesanan/{id}/detail-json', [PetugasController::class, 'getOrderDetailsJson'])->name('petugas.pesanan.detail-json');
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

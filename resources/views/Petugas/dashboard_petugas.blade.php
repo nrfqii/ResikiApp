@@ -135,16 +135,13 @@
                                     </span>
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('petugas.pesanan.detail', $order->id) }}" class="text-primary hover:text-primary-dark mr-3">Detail</a>
+                                    <a href="#" onclick="showOrderDetails({{ $order->id }})" class="text-primary hover:text-primary-dark mr-3">Detail</a>
                                     @if ($order->status == 'pending')
-                                        <button onclick="updateOrderStatus({{ $order->id }}, 'dikonfirmasi')" class="text-sm bg-purple-500 hover:bg-purple-600 text-white py-1 px-2 rounded">Konfirmasi</button>
                                     @elseif ($order->status == 'dikonfirmasi')
-                                        <button onclick="updateOrderStatus({{ $order->id }}, 'diproses')" class="text-sm bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded">Proses</button>
+                                        <button onclick="updateOrderStatus({{ $order->id }}, 'diproses')" class="text-sm bg-purple-500 hover:bg-purple-600 text-white py-1 px-2 rounded">Proses</button>
                                     @elseif ($order->status == 'diproses')
                                         <button onclick="updateOrderStatus({{ $order->id }}, 'selesai')" class="text-sm bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded">Selesai</button>
                                     @endif
-                                    {{-- Add cancel button if needed --}}
-                                    {{-- <button onclick="updateOrderStatus({{ $order->id }}, 'dibatalkan')" class="text-sm bg-red-500 hover:bg-red-600 text-white py-1 px-2 rounded ml-2">Batalkan</button> --}}
                                 </td>
                             </tr>
                         @empty
@@ -203,37 +200,168 @@
                 </a>
             </div>
         </div>
+                                        {{-- Pop-up Modal for Order Details --}}
+<div id="orderDetailModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md md:max-w-lg lg:max-w-xl p-6 sm:p-8 relative transform transition-all duration-300">
+        <button onclick="hideOrderDetails()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <div id="loadingSpinner" class="py-8 flex justify-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+        
+        <div id="errorMessage" class="hidden py-8 text-center text-red-500">
+            Gagal memuat detail pesanan. Silakan coba lagi.
+        </div>
+        
+        <div id="modalContent" class="hidden">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Detail Pesanan <span id="modalOrderId"></span></h3>
 
+            <div class="space-y-4 text-gray-700">
+                <div>
+                    <p class="font-semibold text-gray-600">Konsumen:</p>
+                    <p id="modalCustomerName" class="text-lg"></p>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-600">Layanan:</p>
+                    <p id="modalService" class="text-lg"></p>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-600">Tanggal & Waktu:</p>
+                    <p id="modalDateTime" class="text-lg"></p>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-600">Alamat:</p>
+                    <p id="modalAddress" class="text-lg"></p>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-600">Catatan:</p>
+                    <p id="modalNotes" class="text-lg italic"></p>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-600">Status:</p>
+                    <span id="modalStatus" class="px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full"></span>
+                </div>
+                <div id="modalPetugasInfo" class="hidden">
+                    <p class="font-semibold text-gray-600">Ditangani oleh:</p>
+                    <p id="modalPetugasName" class="text-lg"></p>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button onclick="hideOrderDetails()" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-full font-semibold hover:bg-gray-300 transition duration-200">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 
     {{-- Script untuk AJAX update status --}}
     <script>
-        function updateOrderStatus(orderId, newStatus) {
-            if (!confirm(`Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus}?`)) {
-                return;
-            }
-
-            fetch(`/petugas/pesanan/${orderId}/update-status`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ status: newStatus })
+    // Function to show order details in modal
+    function showOrderDetails(orderId) {
+        const modal = document.getElementById('orderDetailModal');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const modalContent = document.getElementById('modalContent');
+        
+        // Show modal and loading state
+        modal.classList.remove('hidden');
+        loadingSpinner.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+        modalContent.classList.add('hidden');
+        
+        // Fetch order details
+        fetch(`/petugas/pesanan/${orderId}/detail-json`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.reload(); // Refresh halaman untuk melihat perubahan
+            .then(order => {
+                // Hide loading spinner and show content
+                loadingSpinner.classList.add('hidden');
+                modalContent.classList.remove('hidden');
+                
+                // Populate modal with order data
+                document.getElementById('modalOrderId').textContent = '#' + order.id;
+                document.getElementById('modalCustomerName').textContent = order.user.name || 'N/A';
+                document.getElementById('modalService').textContent = order.paket_jasa?.nama_paket || order.custom_request || 'N/A';
+                document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
+                document.getElementById('modalAddress').textContent = order.alamat_lokasi || 'Tidak ada alamat';
+                document.getElementById('modalNotes').textContent = order.catatan || 'Tidak ada catatan';
+                
+                // Set status with appropriate color
+                const statusElement = document.getElementById('modalStatus');
+                statusElement.textContent = order.status_label;
+                statusElement.className = 'px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full ' + order.status_color;
+                
+                // Show petugas info if available
+                if (order.petugas) {
+                    document.getElementById('modalPetugasInfo').classList.remove('hidden');
+                    document.getElementById('modalPetugasName').textContent = order.petugas.name;
                 } else {
-                    alert('Gagal memperbarui status: ' + data.message);
+                    document.getElementById('modalPetugasInfo').classList.add('hidden');
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat memperbarui status.');
+                console.error('Error fetching order details:', error);
+                loadingSpinner.classList.add('hidden');
+                errorMessage.classList.remove('hidden');
             });
+    }
+
+    // Function to hide order details modal
+    function hideOrderDetails() {
+        document.getElementById('orderDetailModal').classList.add('hidden');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('orderDetailModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideOrderDetails();
         }
-    </script>
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !document.getElementById('orderDetailModal').classList.contains('hidden')) {
+            hideOrderDetails();
+        }
+    });
+
+    // Function to update order status
+    function updateOrderStatus(orderId, newStatus) {
+        if (!confirm(`Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus}?`)) {
+            return;
+        }
+
+        fetch(`/petugas/pesanan/${orderId}/update-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Gagal memperbarui status: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memperbarui status.');
+        });
+    }
+</script>
 @endsection

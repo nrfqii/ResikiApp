@@ -209,4 +209,35 @@ public function showOrderDetail($id)
            
     return view('petugas.order_detail', compact('order')); 
 }
+
+public function getOrderDetailsJson($id)
+{
+    if (Auth::user()->role !== 'petugas') {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $order = Pesanan::with(['user', 'paketJasa', 'petugas'])
+        ->findOrFail($id);
+
+    return response()->json([
+        'id' => $order->id,
+        'user' => [
+            'name' => $order->user->name ?? null
+        ],
+        'paket_jasa' => $order->paketJasa ? [
+            'nama_paket' => $order->paketJasa->nama_paket
+        ] : null,
+        'custom_request' => $order->custom_request,
+        'tanggal_formatted' => \Carbon\Carbon::parse($order->tanggal)->format('d F Y'),
+        'waktu' => $order->waktu,
+        'alamat_lokasi' => $order->alamat_lokasi,
+        'catatan' => $order->catatan,
+        'status' => $order->status,
+        'status_label' => $order->getStatusLabelAttribute(),
+        'status_color' => $order->getStatusColorAttribute(),
+        'petugas' => $order->petugas ? [
+            'name' => $order->petugas->name
+        ] : null
+    ]);
+}
 }
