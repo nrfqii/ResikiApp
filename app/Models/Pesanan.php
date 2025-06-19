@@ -125,10 +125,11 @@ class Pesanan extends Model
     /**
      * Relasi dengan model PaketJasa (layanan yang dipesan).
      */
-    public function paketJasa()
+    public function paket_jasa()
     {
         return $this->belongsTo(PaketJasa::class, 'paket_id');
     }
+    
 
     /**
      * Relasi dengan model Ulasan (satu pesanan bisa memiliki satu ulasan).

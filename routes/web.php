@@ -24,7 +24,8 @@ Route::get('/dashboard/petugas', [PetugasController::class, 'dashboard'])->name(
 Route::get('/petugas/pesanan', [PetugasController::class, 'pesananMasuk'])->name('petugas.pesanan');
 Route::get('/petugas/riwayat', [PetugasController::class, 'riwayatPesanan'])->name('petugas.riwayat');
 Route::get('/petugas/pesanan/{id}/detail', [PetugasController::class, 'showOrderDetail'])->name('petugas.pesanan.detail');
-Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])->name('petugas.pesanan.update-status');
+Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])
+    ->name('petugas.pesanan.update-status');
 Route::get('/pesanan/{id}/info', [PetugasController::class, 'getOrderInfo'])->name('petugas.pesanan.info');
 Route::get('/petugas/pesanan/{id}/detail-json', [PetugasController::class, 'getOrderDetailsJson'])->name('petugas.pesanan.detail-json');
 
@@ -37,8 +38,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Default home
 Route::get('/', function () {
-    if (!Auth::check()) return redirect('/login');
+    if (!Auth::check())
+        return redirect('/login');
 
     $role = Auth::user()->role;
     return redirect("/dashboard/$role");
 });
+
+
+// tes
+// Route::get('/order/{id}/detail', [PesananController::class, 'showDetail'])->name('order.detail');
