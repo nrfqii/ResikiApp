@@ -134,10 +134,10 @@
                                                 $statusClass = 'bg-yellow-100 text-yellow-800';
                                                 break;
                                             case 'dikonfirmasi':
-                                                $statusClass = 'bg-purple-100 text-purple-800';
+                                                $statusClass = 'bg-blue-100 text-blue-800';
                                                 break;
                                             case 'diproses':
-                                                $statusClass = 'bg-blue-100 text-blue-800';
+                                                $statusClass = 'bg-purple-100 text-purple-800';
                                                 break;
                                             case 'selesai':
                                                 $statusClass = 'bg-green-100 text-green-800';
@@ -158,14 +158,14 @@
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
                                     <a href="#" onclick="showOrderDetails({{ $order->id }})"
                                         class="text-primary hover:text-primary-dark mr-3">Detail</a>
-                                    @if ($order->status == 'pending')
+                                    {{-- @if ($order->status == 'pending')
                                     @elseif ($order->status == 'dikonfirmasi')
                                         <button onclick="updateOrderStatus({{ $order->id }}, 'diproses')"
                                             class="text-sm bg-purple-500 hover:bg-purple-600 text-white py-1 px-2 rounded">Proses</button>
                                     @elseif ($order->status == 'diproses')
                                         <button onclick="updateOrderStatus({{ $order->id }}, 'selesai')"
                                             class="text-sm bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded">Selesai</button>
-                                    @endif
+                                    @endif --}}
                                 </td>
                             </tr>
                         @empty

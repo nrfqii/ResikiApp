@@ -20,26 +20,26 @@ class MasyarakatController extends Controller
 
         // Mengambil jumlah pesanan menunggu
         $pendingOrdersCount = Pesanan::where('user_id', $userId)
-                                     ->where('status', Pesanan::STATUS_PENDING)
-                                     ->count();
+            ->where('status', Pesanan::STATUS_PENDING)
+            ->count();
 
         // Mengambil jumlah pesanan selesai
         $completedOrdersCount = Pesanan::where('user_id', $userId)
-                                       ->where('status', Pesanan::STATUS_SELESAI)
-                                       ->count();
+            ->where('status', Pesanan::STATUS_SELESAI)
+            ->count();
 
         // Mengambil jumlah ulasan 
         $reviewsCount = Ulasan::where('user_id', $userId)
-                              ->count();
+            ->count();
 
         // Mengambil pesanan terbaru 
         $recentOrders = Pesanan::where('user_id', $userId)
-                               ->orderBy('created_at', 'desc')
-                               ->limit(5) 
-                               ->get();
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
 
         // Melewatkan data ke view
-        return view('masyarakat.dashboard_masyarakat', compact(
+        return view('Masyarakat.dashboard_masyarakat', compact(
             'pendingOrdersCount',
             'completedOrdersCount',
             'reviewsCount',

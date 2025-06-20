@@ -144,7 +144,7 @@ class PesananController extends Controller
      */
     public function show($id)
     {
-        $pesanan = Pesanan::with(['user', 'paketJasa', 'petugas', 'ulasan'])
+        $pesanan = Pesanan::with(['user', 'paket_jasa', 'petugas', 'ulasan'])
             ->where('user_id', Auth::id()) // Pastikan hanya pemilik pesanan yang bisa melihat
             ->findOrFail($id);
 
@@ -156,13 +156,13 @@ class PesananController extends Controller
      */
     public function showDetail($id)
     {
-        $order = Pesanan::with(['paketJasa', 'petugas', 'ulasan'])
+        $order = Pesanan::with(['paket_jasa', 'petugas', 'ulasan'])
             ->where('user_id', auth()->id()) // Pastikan hanya pemilik pesanan yang bisa melihat
             ->findOrFail($id);
 
         return response()->json([
             'id' => $order->id,
-            'layanan' => $order->paketJasa ? $order->paketJasa->nama_paket : ($order->custom_request ?? 'Layanan Kustom'),
+            'layanan' => $order->paket_jasa ? $order->paket_jasa->nama_paket : ($order->custom_request ?? 'Layanan Kustom'),
             'status' => $order->getStatusLabelAttribute(),
             'tanggal' => $order->getTanggalFormattedAttribute(),
             'waktu' => $order->getWaktuFormattedAttribute(),
@@ -179,7 +179,7 @@ class PesananController extends Controller
 
     public function riwayat()
     {
-        $pesanan = Pesanan::with(['paketJasa']) // Eager load relasi paketJasa
+        $pesanan = Pesanan::with(['paket_jasa']) // Eager load relasi paketJasa
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10); // Paginate untuk performa

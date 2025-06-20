@@ -89,7 +89,7 @@
                                     {{ $order->user->name ?? 'N/A' }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
-                                    {{ $order->paketJasa->nama_paket ?? 'N/A' }}
+                                    {{ $order->nama_paket ?? 'N/A' }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                     {{ \Carbon\Carbon::parse($order->tanggal)->format('d M Y') }}, {{ $order->waktu }}

@@ -14,6 +14,7 @@ Route::get('/pesan/{id}', [PesananController::class, 'show'])->name('pesan.show'
 Route::get('/riwayat-pesanan', [PesananController::class, 'riwayat'])->name('pesan.riwayat')->middleware('auth');
 Route::get('/dashboard/konsumen', [MasyarakatController::class, 'dashboard'])->name('dashboard');
 Route::get('/konsumen/pesanan/{id}/detail', [PesananController::class, 'showDetail'])->name('pesanan.detail');
+
 // Ulasan
 Route::get('/ulasan', [UlasanController::class, 'index'])->name('ulasan.index');
 Route::post('/ulasan', [UlasanController::class, 'store'])->name('ulasan.store');
@@ -23,7 +24,7 @@ Route::post('/ulasan', [UlasanController::class, 'store'])->name('ulasan.store')
 Route::get('/dashboard/petugas', [PetugasController::class, 'dashboard'])->name('petugas.dashboard');
 Route::get('/petugas/pesanan', [PetugasController::class, 'pesananMasuk'])->name('petugas.pesanan');
 Route::get('/petugas/riwayat', [PetugasController::class, 'riwayatPesanan'])->name('petugas.riwayat');
-Route::get('/petugas/pesanan/{id}/detail', [PetugasController::class, 'showOrderDetail'])->name('petugas.pesanan.detail');
+// Route::get('/petugas/pesanan/{id}/detail', [PetugasController::class, 'showOrderDetail'])->name('petugas.pesanan.detail');
 Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])
     ->name('petugas.pesanan.update-status');
 Route::get('/pesanan/{id}/info', [PetugasController::class, 'getOrderInfo'])->name('petugas.pesanan.info');

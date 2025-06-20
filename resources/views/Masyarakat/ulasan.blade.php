@@ -47,7 +47,7 @@
                         {{-- LOOPING PESANAN PENGGUNA DI SINI --}}
                         @foreach($userOrders as $order)
                             <option value="{{ $order->id }}" {{ old('order_id') == $order->id ? 'selected' : '' }}>
-                                Pesanan #{{ $order->id }} - {{ $order->service_name ?? 'Layanan Tidak Diketahui' }} ({{ \Carbon\Carbon::parse($order->order_date ?? $order->created_at)->format('d F Y') }})
+                                Pesanan {{ $order->nama_paket ?? 'Layanan Tidak Diketahui' }} ({{ \Carbon\Carbon::parse($order->order_date ?? $order->created_at)->format('d F Y') }})
                             </option>
                         @endforeach
                     </select>

@@ -1,3 +1,4 @@
+{{-- {{ dd($historicalOrders) }} --}}
 @extends('layouts.main')
 
 @section('title', 'Riwayat Pesanan')
@@ -69,7 +70,7 @@
                                 {{ $order->user->name ?? 'N/A' }}
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
-                                {{ $order->service->name ?? 'N/A' }}
+                                {{ $order->nama_paket ?? 'N/A' }}
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                 {{ \Carbon\Carbon::parse($order->updated_at)->format('d M Y, H:i') }} WIB

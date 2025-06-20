@@ -20,8 +20,9 @@ class UlasanController extends Controller
         })->latest()->get();
 
         $userOrders = Pesanan::where('user_id', Auth::id())
-                              ->whereDoesntHave('ulasan') 
-                              ->get();
+                      ->where('status', 'selesai')
+                      ->whereDoesntHave('ulasan')
+                      ->get();
 
         return view('masyarakat.ulasan', compact('ulasan', 'userOrders'));
     }
