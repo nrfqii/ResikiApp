@@ -55,7 +55,7 @@
                         <tr>
                             <th scope="col"
                                 class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ID Pesanan
+                                No.
                             </th>
                             <th scope="col"
                                 class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -80,10 +80,10 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($orders as $order)
+                        @forelse($orders as $index => $order) {{-- Tetap menggunakan $orders --}}
                             <tr id="order-row-{{ $order->id }}">
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    #{{ $order->id }}
+                                    {{ $index + 1 }} 
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                     {{ $order->user->name ?? 'N/A' }}
@@ -119,7 +119,6 @@
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex items-center space-x-2">
-                                        <!-- Button View Detail -->
                                         <a href="#" onclick="showOrderDetails({{ $order->id }})"
                                             class="text-primary hover:text-primary-dark mr-3">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +132,6 @@
 
                                         {{-- old btn --}}
                                         @if ($order->status == 'pending')
-                                            <!-- Button Terima -->
                                             <button
                                                 onclick="showConfirmationModal({{ $order->id }}, 'dikonfirmasi', 'Terima')"
                                                 class="text-green-600 hover:text-green-800" title="Terima">
@@ -143,7 +141,6 @@
                                                         d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </button>
-                                            <!-- Button Tolak -->
                                             <button
                                                 onclick="showConfirmationModal({{ $order->id }}, 'dibatalkan', 'Tolak')"
                                                 class="text-red-600 hover:text-red-800" title="Tolak">
@@ -154,7 +151,6 @@
                                                 </svg>
                                             </button>
                                         @elseif($order->status == 'dikonfirmasi')
-                                            <!-- Button Mulai Proses -->
                                             <button
                                                 onclick="showConfirmationModal({{ $order->id }}, 'diproses', 'Mulai Proses')"
                                                 class="text-blue-600 hover:text-blue-800" title="Mulai Proses">
@@ -165,7 +161,6 @@
                                                 </svg>
                                             </button>
                                         @elseif($order->status == 'diproses')
-                                            <!-- Button Selesai -->
                                             <button
                                                 onclick="showConfirmationModal({{ $order->id }}, 'selesai', 'Selesaikan')"
                                                 class="text-green-600 hover:text-green-800" title="Selesai">
