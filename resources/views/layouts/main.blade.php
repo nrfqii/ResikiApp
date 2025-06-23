@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'ResikiApp')</title>
 
-    <link rel="icon" type="image/jpeg" href="{{ asset('logo-no-bg.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('logo-no-bg.png') }}">
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -223,7 +223,7 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-white/20">
-                            <img src="{{ asset('LogoResiki.jpeg') }}" alt="Logo ResikiApp"
+                            <img src="{{ asset('logo.jpg') }}" alt="Logo ResikiApp"
                                 class="w-full h-full object-cover" />
                         </div>
                         <div class="nav-text smooth-transition">

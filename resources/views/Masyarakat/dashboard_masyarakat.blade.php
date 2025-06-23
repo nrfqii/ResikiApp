@@ -229,7 +229,7 @@
                 <p class="text-sm sm:text-base text-white/90 mb-3">
                     Jangan ragu menghubungi kami jika Anda memiliki pertanyaan atau kendala.
                 </p>
-                <a href="https://wa.me/6285875592691?text=Halo%20Admin%20ResikiApp%2C%20saya%20butuh%20bantuan%20terkait%20pesanan%20saya."
+                <a href="https://wa.me/62895386977117?text=Halo%20Admin%20ResikiApp%2C%20saya%20butuh%20bantuan%20terkait%20pesanan%20saya."
                     target="_blank"
                     class="w-full sm:w-auto bg-white text-primary px-4 py-2 rounded-full font-semibold hover:bg-gray-100 transition duration-200 text-sm flex items-center justify-center">
                     Hubungi Kami
@@ -264,6 +264,13 @@
             {{-- Modal content --}}
             <div id="modalContent" class="py-4 space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @if (!empty($order->gambar))
+                        <div class="md:col-span-2 flex flex-col items-start">
+                            <p class="text-sm text-gray-500 mb-1">Gambar</p>
+                            <img src="{{ asset($order->gambar) }}" alt="Gambar Pesanan" ...>
+                        </div>
+                    @endif
+                    {{ $order->gambar }}
                     <div>
                         <p class="text-sm text-gray-500">Layanan</p>
                         <p class="font-medium" id="modalService"></p>
@@ -288,6 +295,7 @@
                         <p class="text-sm text-gray-500">Catatan Khusus</p>
                         <p class="font-medium" id="modalCustomRequest"></p>
                     </div>
+
                     <div>
                         <p class="text-sm text-gray-500">Harga</p>
                         <p class="font-medium" id="modalPrice"></p>

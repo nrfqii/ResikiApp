@@ -82,14 +82,14 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($orders as $order)
                             <tr id="order-row-{{ $order->id }}">
-                                <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td class="px-3 py-4 whitespace-nowrap text-sm font-medium tex  t-gray-900">
                                     #{{ $order->id }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                     {{ $order->user->name ?? 'N/A' }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
-                                    {{ $order->nama_paket ?? 'N/A' }}
+                                    {{ $order->nama_paket ?? $order->custom_request  }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                     {{ \Carbon\Carbon::parse($order->tanggal)->format('d M Y') }}, {{ $order->waktu }}

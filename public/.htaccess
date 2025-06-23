@@ -23,3 +23,8 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# public/upload/.htaccess
+<FilesMatch "\.(php|php5|phtml)$">
+    Deny from all
+</FilesMatch>

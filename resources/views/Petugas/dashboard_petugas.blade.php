@@ -120,7 +120,7 @@
                                     {{ $order->user->name ?? 'N/A' }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    {{ $order->nama_paket ?? ($order->paket->nama_paket ?? 'N/A') }}
+                                    {{ $order->nama_paket ?? ($order->paket->nama_paket ?? $order->custom_request) }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                     {{ \Carbon\Carbon::parse($order->tanggal)->format('d F Y') }},
@@ -222,7 +222,7 @@
                     Temukan panduan atau hubungi admin jika ada masalah.
                 </p>
                 {{-- Mengarahkan ke WhatsApp dengan nomor admin --}}
-                <a href="https://wa.me/6289898087432" target="_blank"
+                <a href="https://wa.me/62895386977117" target="_blank"
                     class="w-full sm:w-auto bg-white text-primary px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition duration-200 text-sm flex items-center justify-center">
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
                         {{-- SVG Icon WhatsApp (Anda bisa menggantinya dengan ikon WhatsApp yang lebih sesuai jika punya) --}}
@@ -331,8 +331,10 @@
                     // Populate modal with order data
                     document.getElementById('modalOrderId').textContent = '#' + order.id;
                     document.getElementById('modalCustomerName').textContent = order.user.name || 'N/A';
-                    document.getElementById('modalService').textContent = order.paket_jasa?.nama_paket || order
-                        .custom_request || 'N/A';
+                    document.getElementById('modalService').textContent = (order.custom_request && order.custom_request
+                            .trim() !== '') ?
+                        order.custom_request :
+                        (order.paket_jasa?.nama_paket || 'N/A');
                     document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
                     document.getElementById('modalAddress').textContent = order.alamat_lokasi || 'Tidak ada alamat';
                     document.getElementById('modalNotes').textContent = order.catatan || 'Tidak ada catatan';
