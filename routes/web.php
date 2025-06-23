@@ -25,8 +25,7 @@ Route::get('/dashboard/petugas', [PetugasController::class, 'dashboard'])->name(
 Route::get('/petugas/pesanan', [PetugasController::class, 'pesananMasuk'])->name('petugas.pesanan');
 Route::get('/petugas/riwayat', [PetugasController::class, 'riwayatPesanan'])->name('petugas.riwayat');
 // Route::get('/petugas/pesanan/{id}/detail', [PetugasController::class, 'showOrderDetail'])->name('petugas.pesanan.detail');
-Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])
-    ->name('petugas.pesanan.update-status');
+Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])->name('petugas.pesanan.update-status');
 Route::get('/pesanan/{id}/info', [PetugasController::class, 'getOrderInfo'])->name('petugas.pesanan.info');
 Route::get('/petugas/pesanan/{id}/detail-json', [PetugasController::class, 'getOrderDetailsJson'])->name('petugas.pesanan.detail-json');
 

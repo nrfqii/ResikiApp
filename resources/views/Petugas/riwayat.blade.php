@@ -35,7 +35,7 @@
                     <tr>
                         <th scope="col"
                             class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            ID Pesanan
+                            NO.
                         </th>
                         <th scope="col"
                             class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -61,10 +61,10 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {{-- Loop melalui data riwayat pesanan dari controller --}}
-                    @forelse($historicalOrders as $order)
+                    @forelse($historicalOrders as $index => $order)
                         <tr>
                             <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                #{{ $order->id }}
+                                {{ $index + 1 }}
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $order->user->name ?? 'N/A' }}
