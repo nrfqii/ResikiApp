@@ -316,6 +316,10 @@
                         </div>
                     </div>
                 </div>
+                <div id="modalImageContainer" class="hidden">
+                    <p class="text-sm text-gray-500 mb-1">Gambar Pesanan</p>
+                    <img id="modalImage" src="" alt="Gambar Pesanan" class="max-w-full h-auto rounded-lg border border-gray-200">
+                </div>
             </div>
 
             {{-- Modal footer --}}
@@ -337,45 +341,51 @@
         const errorModalMessage = document.getElementById('errorModalMessage');
 
         function showOrderDetail(orderId) {
-            orderDetailModal.classList.remove('hidden');
-            loadingSpinner.classList.remove('hidden');
-            errorModalMessage.classList.add('hidden');
-            modalContent.querySelectorAll('p[id^="modal"]').forEach(p => p.textContent =
-                ''); // Clear previous content, targetting paragraphs with modal IDs
-            document.getElementById('modalReviewSection').classList.add('hidden'); // Hide review section
+    orderDetailModal.classList.remove('hidden');
+    loadingSpinner.classList.remove('hidden');
+    errorModalMessage.classList.add('hidden');
+    modalContent.querySelectorAll('p[id^="modal"]').forEach(p => p.textContent = '');
+    document.getElementById('modalReviewSection').classList.add('hidden');
+    document.getElementById('modalImageContainer').classList.add('hidden'); 
 
-            fetch(`/konsumen/pesanan/${orderId}/detail`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    loadingSpinner.classList.add('hidden');
-                    document.getElementById('modalOrderId').textContent = '#' + data
-                        .id; // Still show original ID in modal header
-                    document.getElementById('modalService').textContent = data.layanan;
-                    document.getElementById('modalStatus').textContent = data.status;
-                    document.getElementById('modalDate').textContent = data.tanggal;
-                    document.getElementById('modalTime').textContent = data.waktu;
-                    document.getElementById('modalLocation').textContent = data.alamat_lokasi;
-                    document.getElementById('modalCustomRequest').textContent = data.catatan || '-';
-                    document.getElementById('modalPrice').textContent = data.total_harga;
-                    // document.getElementById('modalPetugas').textContent = data.petugas;
+    fetch(`/konsumen/pesanan/${orderId}/detail`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            loadingSpinner.classList.add('hidden');
+            document.getElementById('modalOrderId').textContent = '#' + data.id;
+            document.getElementById('modalService').textContent = data.layanan;
+            document.getElementById('modalStatus').textContent = data.status;
+            document.getElementById('modalDate').textContent = data.tanggal;
+            document.getElementById('modalTime').textContent = data.waktu;
+            document.getElementById('modalLocation').textContent = data.alamat_lokasi;
+            document.getElementById('modalCustomRequest').textContent = data.catatan || '-';
+            document.getElementById('modalPrice').textContent = data.total_harga;
 
-                    if (data.rating !== null && data.komentar_ulasan !== null) {
-                        document.getElementById('modalRating').textContent = data.rating;
-                        document.getElementById('modalComment').textContent = data.komentar_ulasan;
-                        document.getElementById('modalReviewSection').classList.remove('hidden');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching order detail:', error);
-                    loadingSpinner.classList.add('hidden');
-                    errorModalMessage.classList.remove('hidden');
-                });
-        }
+            // Show image if available
+            if (data.gambar) {
+                const imgContainer = document.getElementById('modalImageContainer');
+                const imgElement = document.getElementById('modalImage');
+                imgElement.src = data.gambar;
+                imgContainer.classList.remove('hidden');
+            }
+
+            if (data.rating !== null && data.komentar_ulasan !== null) {
+                document.getElementById('modalRating').textContent = data.rating;
+                document.getElementById('modalComment').textContent = data.komentar_ulasan;
+                document.getElementById('modalReviewSection').classList.remove('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching order detail:', error);
+            loadingSpinner.classList.add('hidden');
+            errorModalMessage.classList.remove('hidden');
+        });
+    }
 
         function closeModal() {
             orderDetailModal.classList.add('hidden');
@@ -388,4 +398,11 @@
             }
         });
     </script>
+    <style>
+        #modalImage {
+    max-height: 300px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+}
+    </style>
 @endpush

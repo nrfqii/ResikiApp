@@ -386,7 +386,7 @@
                                 <input type="hidden" name="custom_image_uploaded" id="hiddenCustomImageUploaded">
                                 {{-- To track if an image was selected --}}
                             </div>
-
+                            <br>
                             <button type="button" id="submitOrderBtn"
                                 class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-dark transform hover:scale-105 transition duration-200 shadow-lg hover:shadow-xl">
                                 Kirim Pesanan

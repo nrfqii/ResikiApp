@@ -7,7 +7,8 @@
     <title>@yield('title', 'ResikiApp')</title>
 
     <link rel="icon" type="image/png" href="{{ asset('logo-no-bg.png') }}">
-
+    <!-- Di layouts/main.blade.php atau sebelum </head> -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>

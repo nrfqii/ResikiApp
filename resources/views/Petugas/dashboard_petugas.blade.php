@@ -114,13 +114,13 @@
                         @forelse ($latestIncomingOrders as $index => $order)
                             <tr>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    {{ $index + 1}}
+                                    {{ $index + 1 }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                     {{ $order->user->name ?? 'N/A' }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    {{ $order->nama_paket ?? ($order->paket->nama_paket ?? $order->custom_request) }}
+                                    {{ $order->nama_paket ?? ($order->paket->nama_paket ?? 'N/A') }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                     {{ \Carbon\Carbon::parse($order->tanggal)->format('d F Y') }},
@@ -158,14 +158,6 @@
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
                                     <a href="#" onclick="showOrderDetails({{ $order->id }})"
                                         class="text-primary hover:text-primary-dark mr-3">Detail</a>
-                                    {{-- @if ($order->status == 'pending')
-                                    @elseif ($order->status == 'dikonfirmasi')
-                                        <button onclick="updateOrderStatus({{ $order->id }}, 'diproses')"
-                                            class="text-sm bg-purple-500 hover:bg-purple-600 text-white py-1 px-2 rounded">Proses</button>
-                                    @elseif ($order->status == 'diproses')
-                                        <button onclick="updateOrderStatus({{ $order->id }}, 'selesai')"
-                                            class="text-sm bg-green-500 hover:bg-green-600 text-white py-1 px-2 rounded">Selesai</button>
-                                    @endif --}}
                                 </td>
                             </tr>
                         @empty
@@ -222,10 +214,9 @@
                     Temukan panduan atau hubungi admin jika ada masalah.
                 </p>
                 {{-- Mengarahkan ke WhatsApp dengan nomor admin --}}
-                <a href="https://wa.me/62895386977117" target="_blank"
+                <a href="https://wa.me/6289898087432" target="_blank"
                     class="w-full sm:w-auto bg-white text-primary px-5 py-2 rounded-full font-semibold hover:bg-gray-100 transition duration-200 text-sm flex items-center justify-center">
                     <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                        {{-- SVG Icon WhatsApp (Anda bisa menggantinya dengan ikon WhatsApp yang lebih sesuai jika punya) --}}
                         <path
                             d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.4.92 4.97l-1.3 4.74 4.86-1.28c1.47.4 3.03.62 4.43.62h.003c5.46 0 9.91-4.45 9.91-9.91s-4.45-9.91-9.91-9.91zm.003 1.95c4.32 0 7.82 3.5 7.82 7.82s-3.5 7.82-7.82 7.82c-1.37 0-2.67-.36-3.83-1.04l-.27-.16-2.81.74.75-2.73-.18-.28c-.73-1.12-1.14-2.42-1.14-3.79 0-4.32 3.5-7.82 7.82-7.82zm3.765 10.37c-.12-.06-.7-.34-.81-.38-.11-.04-.19-.06-.27.06-.09.12-.34.38-.41.46-.08.09-.16.1-.28.04-.11-.06-.47-.17-1.12-.69-.82-.62-1.37-1.37-1.53-1.63-.16-.26-.01-.38.07-.46.07-.07.16-.18.23-.29.07-.11.07-.19.05-.26-.02-.07-.09-.2-.18-.46-.09-.26-.18-.22-.25-.22-.06 0-.13-.01-.2-.01-.73.01-1.28.36-1.74.8-1.5 1.45-.63 2.87.21 3.56.84.7 1.8 1.05 2.89 1.05 1.07 0 2.05-.29 2.75-.72.6-.37.98-.6.13-1.03z">
                         </path>
@@ -234,181 +225,214 @@
                 </a>
             </div>
         </div>
-        {{-- Pop-up Modal for Order Details --}}
     </div>
-    <div id="orderDetailModal"
-        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
-        <div
-            class="bg-white rounded-2xl shadow-xl w-full max-w-md md:max-w-lg lg:max-w-xl p-6 sm:p-8 relative transform transition-all duration-300">
+   <div id="orderDetailModal"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200">
+            <h3 class="text-2xl font-bold text-gray-800">
+                Detail Pesanan <span id="modalOrderId"></span>
+            </h3>
             <button onclick="hideOrderDetails()"
-                class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none">
+                    class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
+        </div>
 
-            <div id="loadingSpinner" class="py-8 flex justify-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
             </div>
 
-            <div id="errorMessage" class="hidden py-8 text-center text-red-500">
-                Gagal memuat detail pesanan. Silakan coba lagi.
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden text-center py-12">
+                <div class="text-red-500 text-lg font-medium">
+                    Gagal memuat detail pesanan. Silakan coba lagi.
+                </div>
             </div>
 
-            <div id="modalContent" class="hidden">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">Detail Pesanan <span
-                        id="modalOrderId"></span></h3>
-
-                <div class="space-y-4 text-gray-700">
+            <!-- Modal Content -->
+            <div id="modalContent" class="hidden space-y-6">
+                <!-- Customer and Status Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <p class="font-semibold text-gray-600">Konsumen:</p>
-                        <p id="modalCustomerName" class="text-lg"></p>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Konsumen:</label>
+                        <p id="modalCustomerName" class="text-lg text-gray-800 font-medium"></p>
                     </div>
                     <div>
-                        <p class="font-semibold text-gray-600">Layanan:</p>
-                        <p id="modalService" class="text-lg"></p>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-600">Tanggal & Waktu:</p>
-                        <p id="modalDateTime" class="text-lg"></p>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-600">Alamat:</p>
-                        <p id="modalAddress" class="text-lg"></p>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-600">Catatan:</p>
-                        <p id="modalNotes" class="text-lg italic"></p>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-600">Status:</p>
-                        <span id="modalStatus"
-                            class="px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full"></span>
-                    </div>
-                    <div id="modalPetugasInfo" class="hidden">
-                        <p class="font-semibold text-gray-600">Ditangani oleh:</p>
-                        <p id="modalPetugasName" class="text-lg"></p>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Status:</label>
+                        <span id="modalStatus" class="px-3 py-1 inline-flex text-sm font-semibold rounded-full"></span>
                     </div>
                 </div>
 
-                <div class="mt-8 flex justify-end">
-                    <button onclick="hideOrderDetails()"
-                        class="bg-gray-200 text-gray-800 px-6 py-2 rounded-full font-semibold hover:bg-gray-300 transition duration-200">Tutup</button>
+                <!-- Service and DateTime Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Layanan:</label>
+                        <p id="modalService" class="text-lg text-gray-800"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">Tanggal & Waktu:</label>
+                        <p id="modalDateTime" class="text-lg text-gray-800"></p>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Alamat:</label>
+                    <p id="modalAddress" class="text-lg text-gray-800 leading-relaxed"></p>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">Catatan:</label>
+                    <p id="modalNotes" class="text-lg text-gray-600 italic leading-relaxed"></p>
+                </div>
+
+                <!-- Image Section -->
+                <div id="modalImageContainer" class="hidden">
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Gambar:</label>
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <img id="modalImage" 
+                             class="w-full h-auto max-h-64 object-contain bg-gray-50"
+                             alt="Order Image"
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDE1MCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MEw2NSA1MEg4NUw3NSA0MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN0cm9rZSB3aWR0aD0iMiIgZD0iTTQwIDYwSDExMCIgc3Ryb2tlPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5HYW1iYXIgdGlkYWsgdGVyc2VkaWE8L3RleHQ+Cjwvc3ZnPgo='; this.alt='Gambar tidak tersedia';">
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Modal Footer -->
+        <div class="border-t border-gray-200 p-6">
+            <div class="flex justify-end">
+                <button onclick="hideOrderDetails()"
+                        class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg font-semibold transition-colors duration-200">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
     </div>
 
     {{-- Script untuk AJAX update status --}}
     <script>
-        // Function to show order details in modal
-        function showOrderDetails(orderId) {
-            const modal = document.getElementById('orderDetailModal');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const errorMessage = document.getElementById('errorMessage');
-            const modalContent = document.getElementById('modalContent');
+// Function to show order details in modal
+function showOrderDetails(orderId) {
+    const modal = document.getElementById('orderDetailModal');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const errorMessage = document.getElementById('errorMessage');
+    const modalContent = document.getElementById('modalContent');
+    const modalImageContainer = document.getElementById('modalImageContainer');
+    const modalImage = document.getElementById('modalImage');
 
-            // Show modal and loading state
-            modal.classList.remove('hidden');
-            loadingSpinner.classList.remove('hidden');
-            errorMessage.classList.add('hidden');
-            modalContent.classList.add('hidden');
+    // Prevent body scrolling
+    document.body.classList.add('overflow-hidden');
 
-            // Fetch order details
-            fetch(`/petugas/pesanan/${orderId}/detail-json`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(order => {
-                    // Hide loading spinner and show content
-                    loadingSpinner.classList.add('hidden');
-                    modalContent.classList.remove('hidden');
+    // Show modal and loading state
+    modal.classList.remove('hidden');
+    loadingSpinner.classList.remove('hidden');
+    errorMessage.classList.add('hidden');
+    modalContent.classList.add('hidden');
+    modalImageContainer.classList.add('hidden'); // Hide image container initially
+    modalImage.src = ''; // Clear previous image source
 
-                    // Populate modal with order data
-                    document.getElementById('modalOrderId').textContent = '#' + order.id;
-                    document.getElementById('modalCustomerName').textContent = order.user.name || 'N/A';
-                    document.getElementById('modalService').textContent = (order.custom_request && order.custom_request
-                            .trim() !== '') ?
-                        order.custom_request :
-                        (order.paket_jasa?.nama_paket || 'N/A');
-                    document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
-                    document.getElementById('modalAddress').textContent = order.alamat_lokasi || 'Tidak ada alamat';
-                    document.getElementById('modalNotes').textContent = order.catatan || 'Tidak ada catatan';
-
-                    // Set status with appropriate color
-                    const statusElement = document.getElementById('modalStatus');
-                    statusElement.textContent = order.status_label;
-                    statusElement.className = 'px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full ' +
-                        order.status_color;
-
-                    // Show petugas info if available
-                    if (order.petugas) {
-                        document.getElementById('modalPetugasInfo').classList.remove('hidden');
-                        document.getElementById('modalPetugasName').textContent = order.petugas.name;
-                    } else {
-                        document.getElementById('modalPetugasInfo').classList.add('hidden');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching order details:', error);
-                    loadingSpinner.classList.add('hidden');
-                    errorMessage.classList.remove('hidden');
-                });
-        }
-
-        // Function to hide order details modal
-        function hideOrderDetails() {
-            document.getElementById('orderDetailModal').classList.add('hidden');
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('orderDetailModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hideOrderDetails();
+    // Fetch order details
+    fetch(`/petugas/pesanan/${orderId}/detail-json`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
+            return response.json();
+        })
+        .then(order => {
+            // Hide loading spinner and show content
+            loadingSpinner.classList.add('hidden');
+            modalContent.classList.remove('hidden');
+
+            // Populate modal with order data
+            document.getElementById('modalOrderId').textContent = order.id; // Removed '#' to match JSON response
+            document.getElementById('modalCustomerName').textContent = order.user.name || 'N/A';
+            document.getElementById('modalService').textContent = order.paket_jasa ?.nama_paket || order.custom_request || 'N/A';
+            document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
+            document.getElementById('modalAddress').textContent = order.alamat_lokasi || 'Tidak ada alamat';
+            document.getElementById('modalNotes').textContent = order.custom_request || 'Tidak ada catatan';
+
+            // Set status with appropriate color
+            const statusElement = document.getElementById('modalStatus');
+            statusElement.textContent = order.status_label;
+            statusElement.className = 'px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full ' + order.status_color;
+
+            // Show image if available
+            if (order.gambar) {
+                modalImage.src = order.gambar;
+                modalImageContainer.classList.remove('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching order details:', error);
+            loadingSpinner.classList.add('hidden');
+            errorMessage.classList.remove('hidden');
         });
+}
 
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !document.getElementById('orderDetailModal').classList.contains('hidden')) {
-                hideOrderDetails();
-            }
-        });
+// Function to hide order details modal
+function hideOrderDetails() {
+    const modal = document.getElementById('orderDetailModal');
+    modal.classList.add('hidden');
+    // Restore body scrolling
+    document.body.classList.remove('overflow-hidden');
+}
 
-        // Function to update order status
-        function updateOrderStatus(orderId, newStatus) {
-            if (!confirm(`Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus}?`)) {
-                return;
-            }
+// Close modal when clicking outside
+document.getElementById('orderDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideOrderDetails();
+    }
+});
 
-            fetch(`/petugas/pesanan/${orderId}/update-status`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        status: newStatus
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        window.location.reload();
-                    } else {
-                        alert('Gagal memperbarui status: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Terjadi kesalahan saat memperbarui status.');
-                });
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !document.getElementById('orderDetailModal').classList.contains('hidden')) {
+        hideOrderDetails();
+    }
+});
+
+// Function to update order status
+function updateOrderStatus(orderId, newStatus) {
+    if (!confirm(`Apakah Anda yakin ingin mengubah status pesanan ini menjadi ${newStatus}?`)) {
+        return;
+    }
+
+    fetch(`/petugas/pesanan/${orderId}/update-status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('Gagal memperbarui status: ' + data.message);
         }
-    </script>
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat memperbarui status.');
+    });
+}
+</script>
+
 @endsection

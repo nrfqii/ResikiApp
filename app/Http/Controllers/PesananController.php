@@ -128,26 +128,24 @@ class PesananController extends Controller
      */
     public function showDetail($id)
     {
-        $order = Pesanan::with(['paket_jasa', 'petugas', 'ulasan'])
-            ->where('user_id', auth()->id()) // Pastikan hanya pemilik pesanan yang bisa melihat
-            ->findOrFail($id);
+    $order = Pesanan::with(['paket_jasa', 'petugas', 'ulasan'])
+        ->where('user_id', auth()->id())
+        ->findOrFail($id);
 
-        return response()->json([
-            'id' => $order->id,
-            'layanan' => $order->paket_jasa ? $order->paket_jasa->nama_paket : ($order->custom_request ?? 'Layanan Kustom'),
-            'status' => $order->getStatusLabelAttribute(),
-            'tanggal' => $order->getTanggalFormattedAttribute(),
-            'waktu' => $order->getWaktuFormattedAttribute(),
-            'alamat_lokasi' => $order->alamat_lokasi,
-            'catatan' => $order->custom_request ?? '-', // Menampilkan custom_request
-            'total_harga' => 'Rp ' . number_format($order->total_harga, 0, ',', '.'),
-            // 'petugas' => $order->petugas ? $order->petugas->name : 'Belum ditugaskan',
-            'rating' => $order->ulasan ? $order->ulasan->rating : null,
-            'komentar_ulasan' => $order->ulasan ? $order->ulasan->komentar : null,
-            'gambar' => $order->gambar ? asset($order->gambar) : null, // URL gambar
-        ]);
+    return response()->json([
+        'id' => $order->id,
+        'layanan' => $order->paket_jasa ? $order->paket_jasa->nama_paket : ($order->custom_request ?? 'Layanan Kustom'),
+        'status' => $order->getStatusLabelAttribute(),
+        'tanggal' => $order->getTanggalFormattedAttribute(),
+        'waktu' => $order->getWaktuFormattedAttribute(),
+        'alamat_lokasi' => $order->alamat_lokasi,
+        'catatan' => $order->custom_request ?? '-',
+        'total_harga' => 'Rp ' . number_format($order->total_harga, 0, ',', '.'),
+        'rating' => $order->ulasan ? $order->ulasan->rating : null,
+        'komentar_ulasan' => $order->ulasan ? $order->ulasan->komentar : null,
+        'gambar' => $order->gambar ? asset($order->gambar) : null, 
+    ]);
     }
-
 
     public function riwayat()
     {

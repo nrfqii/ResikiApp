@@ -248,7 +248,8 @@ class PetugasController extends Controller
             'status_color' => $order->getStatusColorAttribute(),
             'petugas' => $order->petugas ? [
                 'name' => $order->petugas->name
-            ] : null
+            ] : null,
+            'gambar' => $order->gambar ? asset($order->gambar) : null, 
         ]);
     }
 }
