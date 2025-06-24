@@ -8,7 +8,8 @@
 
     <link rel="icon" type="image/png" href="{{ asset('logo-no-bg.png') }}">
     <!-- Di layouts/main.blade.php atau sebelum </head> -->
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async
+        defer></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -92,6 +93,9 @@
 
         .sidebar-collapsed .nav-item {
             justify-content: center;
+            align-items: center;
+            display: flex;
+            text-align: center;
         }
 
         /* Tooltip styles */
@@ -246,8 +250,8 @@
             <div class="p-6 border-b border-white/20">
                 <div class="flex items-center space-x-3">
                     <div
-                        class="w-12 h-12 glass-effect rounded-full flex items-center justify-center user-avatar smooth-transition">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-12 h-12 glass-effect rounded-xl flex items-center justify-center user-avatar smooth-transition">
+                        <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
@@ -273,9 +277,11 @@
                             Menu Utama
                         </div>
                         <a href="/dashboard/konsumen"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('dashboard/konsumen') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('dashboard/konsumen') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}"
+                            :class="{ 'justify-center': sidebarCollapsed && !isMobile }">
+                            <svg class="w-5 h-5 flex-shrink-0 smooth-transition"
+                                :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
                                 </path>
@@ -284,9 +290,11 @@
                             <div class="tooltip">Dashboard</div>
                         </a>
                         <a href="/pesan"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('pesan*') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('pesan*') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}"
+                            :class="{ 'justify-center': sidebarCollapsed && !isMobile }">
+                            <svg class="w-5 h-5 flex-shrink-0 smooth-transition"
+                                :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4">
                                 </path>
@@ -301,9 +309,11 @@
                             <div class="tooltip">Pesan Jasa</div>
                         </a>
                         <a href="/ulasan"
-                            class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('ulasan*') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('ulasan*') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}"
+                            :class="{ 'justify-center': sidebarCollapsed && !isMobile }">
+                            <svg class="w-5 h-5 flex-shrink-0 smooth-transition"
+                                :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z">
                                 </path>
@@ -320,8 +330,9 @@
                         </div>
                         <a href="/dashboard/petugas"
                             class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('dashboard/petugas') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0 smooth-transition"
+                                :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
                                 </path>
@@ -331,8 +342,9 @@
                         </a>
                         <a href="/petugas/pesanan"
                             class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('petugas/pesanan*') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0 smooth-transition"
+                                :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
                                 </path>
@@ -348,8 +360,9 @@
                         </a>
                         <a href="/petugas/riwayat"
                             class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('petugas/riwayat*') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}">
-                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0 smooth-transition"
+                                :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
@@ -365,9 +378,11 @@
                 <form action="/logout" method="POST" class="w-full">
                     @csrf
                     <button type="submit"
-                        class="w-full nav-item flex items-center px-4 py-3 rounded-xl hover:bg-red-500/20 text-red-100 smooth-transition group relative">
-                        <svg class="w-5 h-5 mr-3 group-hover:rotate-12 smooth-transition flex-shrink-0" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
+                        class="w-full nav-item flex items-center px-4 py-3 rounded-xl hover:bg-red-500/20 text-red-100 smooth-transition group relative"
+                        :class="{ 'justify-center': sidebarCollapsed && !isMobile }">
+                        <svg class="w-5 h-5 mr-3 group-hover:rotate-12 smooth-transition flex-shrink-0"
+                            :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
                             </path>

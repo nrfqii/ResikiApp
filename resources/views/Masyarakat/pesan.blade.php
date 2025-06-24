@@ -1,5 +1,7 @@
 @extends('layouts.main')
 @section('title', 'Pesan Jasa')
+@section('subtitle', 'Pilih layanan sesuai keperluan anda!')
+
 @section('content')
     <div class="max-w-6xl mx-auto px-4 py-8">
         <div class="text-center mb-8">
