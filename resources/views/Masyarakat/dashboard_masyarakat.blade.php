@@ -242,7 +242,11 @@
         <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-2xl bg-white">
             {{-- Modal header --}}
             <div class="flex justify-between items-center pb-3 border-b">
-                <h3 class="text-xl font-bold text-gray-800">Detail Pesanan <span id="modalOrderId"></span></h3>
+                <h3 class="text-xl font-bold text-gray-800">Detail Pesanan <span id="modalOrderId">
+
+                    </span></h3>
+
+
                 <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
@@ -292,6 +296,12 @@
                         <p class="font-medium" id="modalLocation"></p>
                     </div>
                     <div class="md:col-span-2">
+                        <p class="text-sm text-gray-500 mb-1">Peta Lokasi</p>
+                        <div id="lokasiMap" class="w-full h-64 rounded-lg border border-gray-300"></div>
+                    </div>
+
+
+                    <div class="md:col-span-2">
                         <p class="text-sm text-gray-500">Catatan Khusus</p>
                         <p class="font-medium" id="modalCustomRequest"></p>
                     </div>
@@ -318,7 +328,8 @@
                 </div>
                 <div id="modalImageContainer" class="hidden">
                     <p class="text-sm text-gray-500 mb-1">Gambar Pesanan</p>
-                    <img id="modalImage" src="" alt="Gambar Pesanan" class="max-w-full h-auto rounded-lg border border-gray-200">
+                    <img id="modalImage" src="" alt="Gambar Pesanan"
+                        class="max-w-full h-auto rounded-lg border border-gray-200">
                 </div>
             </div>
 
@@ -335,74 +346,116 @@
 
 @push('scripts')
     <script>
-        const orderDetailModal = document.getElementById('orderDetailModal');
-        const modalContent = document.getElementById('modalContent');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const errorModalMessage = document.getElementById('errorModalMessage');
+        let lokasiMap = null;
 
         function showOrderDetail(orderId) {
-    orderDetailModal.classList.remove('hidden');
-    loadingSpinner.classList.remove('hidden');
-    errorModalMessage.classList.add('hidden');
-    modalContent.querySelectorAll('p[id^="modal"]').forEach(p => p.textContent = '');
-    document.getElementById('modalReviewSection').classList.add('hidden');
-    document.getElementById('modalImageContainer').classList.add('hidden'); 
+            orderDetailModal.classList.remove('hidden');
+            loadingSpinner.classList.remove('hidden');
+            errorModalMessage.classList.add('hidden');
 
-    fetch(`/konsumen/pesanan/${orderId}/detail`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            loadingSpinner.classList.add('hidden');
-            document.getElementById('modalOrderId').textContent = '#' + data.id;
-            document.getElementById('modalService').textContent = data.layanan;
-            document.getElementById('modalStatus').textContent = data.status;
-            document.getElementById('modalDate').textContent = data.tanggal;
-            document.getElementById('modalTime').textContent = data.waktu;
-            document.getElementById('modalLocation').textContent = data.alamat_lokasi;
-            document.getElementById('modalCustomRequest').textContent = data.catatan || '-';
-            document.getElementById('modalPrice').textContent = data.total_harga;
+            modalContent.querySelectorAll('p[id^="modal"]').forEach(p => p.textContent = '');
+            document.getElementById('modalReviewSection').classList.add('hidden');
+            document.getElementById('modalImageContainer').classList.add('hidden');
 
-            // Show image if available
-            if (data.gambar) {
-                const imgContainer = document.getElementById('modalImageContainer');
-                const imgElement = document.getElementById('modalImage');
-                imgElement.src = data.gambar;
-                imgContainer.classList.remove('hidden');
-            }
+            fetch(`/konsumen/pesanan/${orderId}/detail`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    loadingSpinner.classList.add('hidden');
 
-            if (data.rating !== null && data.komentar_ulasan !== null) {
-                document.getElementById('modalRating').textContent = data.rating;
-                document.getElementById('modalComment').textContent = data.komentar_ulasan;
-                document.getElementById('modalReviewSection').classList.remove('hidden');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching order detail:', error);
-            loadingSpinner.classList.add('hidden');
-            errorModalMessage.classList.remove('hidden');
-        });
-    }
+                    // 📝 Set detail
+                    // document.getElementById('modalOrderId').textContent = '#' + data.id;
+                    document.getElementById('modalService').textContent = data.layanan;
+                    document.getElementById('modalStatus').textContent = data.status;
+                    document.getElementById('modalDate').textContent = data.tanggal;
+                    document.getElementById('modalTime').textContent = data.waktu;
+                    document.getElementById('modalLocation').textContent = data.alamat_lokasi;
+                    document.getElementById('modalCustomRequest').textContent = data.catatan || '-';
+                    document.getElementById('modalPrice').textContent = data.total_harga;
+
+                    if (data.gambar) {
+                        const imgContainer = document.getElementById('modalImageContainer');
+                        const imgElement = document.getElementById('modalImage');
+                        imgElement.src = data.gambar;
+                        imgContainer.classList.remove('hidden');
+                    }
+
+                    if (data.rating !== null && data.komentar_ulasan !== null) {
+                        document.getElementById('modalRating').textContent = data.rating;
+                        document.getElementById('modalComment').textContent = data.komentar_ulasan;
+                        document.getElementById('modalReviewSection').classList.remove('hidden');
+                    }
+
+                    // 🗺️ Render MAP
+                    setTimeout(() => {
+                        resetLeafletMapContainer('lokasiMap'); // ini kunci utama
+
+                        lokasiMap = L.map('lokasiMap').setView([data.latitude, data.longitude], 16);
+
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(lokasiMap);
+
+                        L.marker([data.latitude, data.longitude])
+                            .addTo(lokasiMap)
+                            .bindPopup("Lokasi Pesanan")
+                            .openPopup();
+
+                        // Marker petugas jika status === 'diproses'
+                        if (data.status === 'diproses' && data.petugas_lat && data.petugas_lng) {
+                            L.marker([data.petugas_lat, data.petugas_lng], {
+                                    icon: L.icon({
+                                        iconUrl: '/icons/logo.jpg',
+                                        iconSize: [30, 40],
+                                        iconAnchor: [15, 40]
+                                    })
+                                })
+                                .addTo(lokasiMap)
+                                .bindPopup("Lokasi Petugas");
+                        }
+
+                        lokasiMap.invalidateSize();
+                    }, 300);
+
+                })
+                .catch(error => {
+                    console.error('Error fetching order detail:', error);
+                    loadingSpinner.classList.add('hidden');
+                    errorModalMessage.classList.remove('hidden');
+                });
+        }
 
         function closeModal() {
+            if (lokasiMap !== null) {
+                lokasiMap.remove();
+                lokasiMap = null;
+            }
             orderDetailModal.classList.add('hidden');
         }
 
-        // Close modal when clicking outside
+        // Tutup modal saat klik area luar
         orderDetailModal.addEventListener('click', function(event) {
             if (event.target === orderDetailModal) {
                 closeModal();
             }
         });
+        // Fungsi bantu untuk reset elemen map
+        function resetLeafletMapContainer(id) {
+            const container = L.DomUtil.get(id);
+            if (container != null) {
+                container._leaflet_id = null; // ini penting!
+                container.innerHTML = ""; // bersihkan isi div
+            }
+        }
     </script>
+
     <style>
         #modalImage {
-    max-height: 300px;
-    object-fit: contain;
-    margin-bottom: 1rem;
-}
+            max-height: 300px;
+            object-fit: contain;
+            margin-bottom: 1rem;
+        }
     </style>
 @endpush

@@ -28,7 +28,9 @@ class PesananController extends Controller
             'paket_id' => 'nullable|integer|exists:paket_jasa,id',
             'custom_request' => 'nullable|string|max:2000|required_if:is_custom_request,1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'is_custom_request' => 'sometimes|boolean'
+            'is_custom_request' => 'sometimes|boolean',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ], [
             'image.image' => 'File harus berupa gambar.',
             'image.mimes' => 'Format gambar harus jpeg, png, atau jpg.',
@@ -47,7 +49,9 @@ class PesananController extends Controller
                 'status' => Pesanan::STATUS_PENDING,
                 'is_custom_request' => $validated['is_custom_request'] ?? false,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
+                'latitude' => $validated['latitude'],
+                'longitude' => $validated['longitude'],
             ];
 
             // Hitung total harga
@@ -67,6 +71,7 @@ class PesananController extends Controller
                     $totalHarga = 0;
                 }
             }
+            // dd($pesananData);
 
             $pesananData['total_harga'] = $totalHarga;
 
@@ -128,24 +133,29 @@ class PesananController extends Controller
      */
     public function showDetail($id)
     {
-    $order = Pesanan::with(['paket_jasa', 'petugas', 'ulasan'])
-        ->where('user_id', auth()->id())
-        ->findOrFail($id);
+        $order = Pesanan::with(['paket_jasa', 'petugas', 'ulasan'])
+            ->where('user_id', auth()->id())
+            ->findOrFail($id);
 
-    return response()->json([
-        'id' => $order->id,
-        'layanan' => $order->paket_jasa ? $order->paket_jasa->nama_paket : ($order->custom_request ?? 'Layanan Kustom'),
-        'status' => $order->getStatusLabelAttribute(),
-        'tanggal' => $order->getTanggalFormattedAttribute(),
-        'waktu' => $order->getWaktuFormattedAttribute(),
-        'alamat_lokasi' => $order->alamat_lokasi,
-        'catatan' => $order->custom_request ?? '-',
-        'total_harga' => 'Rp ' . number_format($order->total_harga, 0, ',', '.'),
-        'rating' => $order->ulasan ? $order->ulasan->rating : null,
-        'komentar_ulasan' => $order->ulasan ? $order->ulasan->komentar : null,
-        'gambar' => $order->gambar ? asset($order->gambar) : null, 
-    ]);
+        return response()->json([
+            'id' => $order->id,
+            'layanan' => $order->paketJasa ? $order->paketJasa->nama_paket : ($order->custom_request ?? 'Layanan Kustom'),
+            'status' => $order->status,
+            'tanggal' => $order->getTanggalFormattedAttribute(),
+            'waktu' => $order->getWaktuFormattedAttribute(),
+            'alamat_lokasi' => $order->alamat_lokasi,
+            'catatan' => $order->custom_request ?? '-',
+            'total_harga' => 'Rp ' . number_format($order->total_harga, 0, ',', '.'),
+            'gambar' => $order->gambar ? asset($order->gambar) : null,
+            'rating' => optional($order->ulasan)->rating,
+            'komentar_ulasan' => optional($order->ulasan)->komentar,
+            'latitude' => $order->latitude,
+            'longitude' => $order->longitude,
+            'petugas_lat' => $order->petugas ? $order->petugas->latitude : null,
+            'petugas_lng' => $order->petugas ? $order->petugas->longitude : null,
+        ]);
     }
+
 
     public function riwayat()
     {

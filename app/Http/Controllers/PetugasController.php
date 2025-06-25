@@ -27,8 +27,8 @@ class PetugasController extends Controller
 
         $latestIncomingOrders = Pesanan::with(['user', 'paket_jasa'])
             ->whereIn('status', [Pesanan::STATUS_PENDING, Pesanan::STATUS_DIKONFIRMASI, Pesanan::STATUS_DIPROSES])
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('waktu', 'asc')
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('waktu', 'desc')
             ->limit(5)
             ->get();
 
@@ -101,7 +101,9 @@ class PetugasController extends Controller
 
         $request->validate([
             'status' => 'required|in:pending,dikonfirmasi,diproses,selesai,dibatalkan',
-            'catatan' => 'nullable|string|max:255'
+            'catatan' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         try {
@@ -141,21 +143,29 @@ class PetugasController extends Controller
             }
 
             // DEBUG: Jika dikonfirmasi, log detail pesanan
-            if ($request->status === 'dikonfirmasi') {
-                \Log::debug("=== DEBUG KONFIRMASI PESANAN ===");
-                \Log::debug("ID Pesanan: " . $pesanan->id);
-                \Log::debug("Status Sebelumnya: " . $pesanan->status);
-                \Log::debug("User Pemesan: " . ($pesanan->user->name ?? 'N/A'));
-                \Log::debug("Alamat: " . ($pesanan->alamat_lokasi ?? 'Tidak ada'));
-                \Log::debug("Catatan: " . ($pesanan->catatan ?? 'Tidak ada'));
-                \Log::debug("Service: " . ($pesanan->paket_jasa->nama_paket ?? $pesanan->custom_request ?? 'Custom kosong'));
+            // if ($request->status === 'dikonfirmasi') {
+            //     \Log::debug("=== DEBUG KONFIRMASI PESANAN ===");
+            //     \Log::debug("ID Pesanan: " . $pesanan->id);
+            //     \Log::debug("Status Sebelumnya: " . $pesanan->status);
+            //     \Log::debug("User Pemesan: " . ($pesanan->user->name ?? 'N/A'));
+            //     \Log::debug("Alamat: " . ($pesanan->alamat_lokasi ?? 'Tidak ada'));
+            //     \Log::debug("Catatan: " . ($pesanan->catatan ?? 'Tidak ada'));
+            //     \Log::debug("Service: " . ($pesanan->paket_jasa->nama_paket ?? $pesanan->custom_request ?? 'Custom kosong'));
+            // }
+
+            if ($request->status === 'diproses') {
+                $user = Auth::user();
+                $user->latitude = $request->latitude;
+                $user->longitude = $request->longitude;
+                $user->save();
             }
 
             // Update status dan catatan (jika ada)
             $pesanan->update([
                 'status' => $request->status,
                 'catatan' => $request->filled('catatan') ? $request->catatan : null,
-                'updated_at' => now()
+                'updated_at' => now(),
+                'petugas_id' => Auth::id()
             ]);
 
             $statusMessages = [
@@ -163,12 +173,25 @@ class PetugasController extends Controller
                 'diproses' => 'Pesanan berhasil diproses.',
                 'selesai' => 'Pesanan berhasil diselesaikan.'
             ];
+            // Tambahkan sebelum return response
+            if ($request->status === 'diproses' && $request->has(['latitude', 'longitude'])) {
+                Auth::user()->update([
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude
+                ]);
+            }
+
 
             return response()->json([
                 'success' => true,
                 'message' => $statusMessages[$request->status] ?? 'Status pesanan berhasil diperbarui!',
                 'order_id' => $id,
-                'new_status' => $request->status
+                'new_status' => $request->status,
+                'petugas' => [
+                    'name' => optional($pesanan->petugas)->name,
+                    'latitude' => optional($pesanan->petugas)->latitude,
+                    'longitude' => optional($pesanan->petugas)->longitude,
+                ]
             ]);
         } catch (\Exception $e) {
             \Log::error("Error updating order status: " . $e->getMessage());
@@ -227,8 +250,7 @@ class PetugasController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $order = Pesanan::with(['user', 'paket_jasa', 'petugas'])
-            ->findOrFail($id);
+        $order = Pesanan::with(['user', 'paket_jasa', 'petugas'])->findOrFail($id);
 
         return response()->json([
             'id' => $order->id,
@@ -249,7 +271,12 @@ class PetugasController extends Controller
             'petugas' => $order->petugas ? [
                 'name' => $order->petugas->name
             ] : null,
-            'gambar' => $order->gambar ? asset($order->gambar) : null, 
+            'gambar' => $order->gambar ? asset($order->gambar) : null,
+
+            // ✅ Tambahkan lokasi
+            'latitude' => $order->latitude,
+            'longitude' => $order->longitude,
         ]);
     }
+
 }

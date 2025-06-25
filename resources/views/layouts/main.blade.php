@@ -8,8 +8,8 @@
 
     <link rel="icon" type="image/png" href="{{ asset('logo-no-bg.png') }}">
     <!-- Di layouts/main.blade.php atau sebelum </head> -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async
-        defer></script>
+    {{-- <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async
+        defer></script> --}}
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -27,6 +27,12 @@
     </script>
 
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 
     <style>
         /* Custom scrollbar */
@@ -467,6 +473,92 @@
     </div>
 
     @stack('scripts')
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        let map = L.map('map');
+
+        // Tambahkan tile dari OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker;
+
+        // Fungsi saat user klik di peta
+        function onMapClick(e) {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker(e.latlng).addTo(map);
+            document.getElementById('lat').value = e.latlng.lat;
+            document.getElementById('lng').value = e.latlng.lng;
+        }
+
+        map.on('click', onMapClick);
+
+        // ✅ Lokasi awal dari browser
+        map.locate({
+            setView: true,
+            maxZoom: 16
+        });
+
+        map.on('locationfound', function(e) {
+            // Tambahkan marker otomatis saat lokasi ditemukan
+            marker = L.marker(e.latlng).addTo(map)
+                .bindPopup('Lokasi Anda ditemukan').openPopup();
+
+            document.getElementById('lat').value = e.latlng.lat;
+            document.getElementById('lng').value = e.latlng.lng;
+        });
+
+        map.on('locationerror', function() {
+            alert("Tidak dapat menemukan lokasi Anda. Silakan klik lokasi secara manual di peta.");
+        });
+
+        // Tampilan peta di modal
+        // Pastikan elemen peta kosong (jika sebelumnya dibuka)
+        document.getElementById('modalMap').innerHTML = '';
+
+        if (data.latitude && data.longitude) {
+            // Inisialisasi peta
+            const map = L.map('modalMap').setView([data.latitude, data.longitude], 16);
+
+            // Tambahkan layer OSM
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Tambahkan marker posisi konsumen
+            L.marker([data.latitude, data.longitude]).addTo(map)
+                .bindPopup('Lokasi Pemesan').openPopup();
+
+            // Resize ulang saat modal dibuka
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 300);
+        }
+
+
+        // 
+        if (data.latitude && data.longitude) {
+            const lokasiMap = L.map('lokasiMap').setView([data.latitude, data.longitude], 16);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(lokasiMap);
+
+            L.marker([data.latitude, data.longitude])
+                .addTo(lokasiMap)
+                .bindPopup("Lokasi Pemesan")
+                .openPopup();
+
+            // Render ulang map setelah modal terbuka
+            setTimeout(() => {
+                lokasiMap.invalidateSize();
+            }, 300);
+        }
+    </script>
+
 </body>
 
 </html>

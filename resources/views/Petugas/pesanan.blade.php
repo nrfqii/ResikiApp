@@ -80,7 +80,8 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($orders as $index => $order) {{-- Tetap menggunakan $orders --}}
+                        @forelse($orders as $index => $order)
+                            {{-- Tetap menggunakan $orders --}}
                             <tr id="order-row-{{ $order->id }}">
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     #{{ $order->id }}
@@ -89,7 +90,7 @@
                                     {{ $order->user->name ?? 'N/A' }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
-                                    {{ $order->nama_paket ?? $order->custom_request  }}
+                                    {{ $order->nama_paket ?? $order->custom_request }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                     {{ \Carbon\Carbon::parse($order->tanggal)->format('d M Y') }}, {{ $order->waktu }}
@@ -244,163 +245,190 @@
                 </div>
             </div>
         </div>
-        <div id="orderDetailModal"
-     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200">
-            <h3 class="text-2xl font-bold text-gray-800">
-                Detail Pesanan <span id="modalOrderId"></span>
-            </h3>
-            <button onclick="hideOrderDetails()"
-                    class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
 
-        <!-- Modal Body -->
-        <div class="flex-1 overflow-y-auto p-6">
-            <!-- Loading Spinner -->
-            <div id="loadingSpinner" class="flex justify-center items-center py-12">
-                <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
-            </div>
-
-            <!-- Error Message -->
-            <div id="errorMessage" class="hidden text-center py-12">
-                <div class="text-red-500 text-lg font-medium">
-                    Gagal memuat detail pesanan. Silakan coba lagi.
-                </div>
-            </div>
-
-            <!-- Modal Content -->
-            <div id="modalContent" class="hidden space-y-6">
-                <!-- Customer and Status Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Konsumen:</label>
-                        <p id="modalCustomerName" class="text-lg text-gray-800 font-medium"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Status:</label>
-                        <span id="modalStatus" class="px-3 py-1 inline-flex text-sm font-semibold rounded-full"></span>
-                    </div>
-                </div>
-
-                <!-- Service and DateTime Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Layanan:</label>
-                        <p id="modalService" class="text-lg text-gray-800"></p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600 mb-1">Tanggal & Waktu:</label>
-                        <p id="modalDateTime" class="text-lg text-gray-800"></p>
-                    </div>
-                </div>
-
-                <!-- Address -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-1">Alamat:</label>
-                    <p id="modalAddress" class="text-lg text-gray-800 leading-relaxed"></p>
-                </div>
-
-                <!-- Notes -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600 mb-1">Catatan:</label>
-                    <p id="modalNotes" class="text-lg text-gray-600 italic leading-relaxed"></p>
-                </div>
-
-                <!-- Image Section -->
-                <div id="modalImageContainer" class="hidden">
-                    <label class="block text-sm font-semibold text-gray-600 mb-2">Gambar:</label>
-                    <div class="border border-gray-200 rounded-lg overflow-hidden">
-                        <img id="modalImage" 
-                             class="w-full h-auto max-h-64 object-contain bg-gray-50"
-                             alt="Order Image"
-                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDE1MCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MEw2NSA1MEg4NUw3NSA0MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN0cm9rZSB3aWR0aD0iMiIgZD0iTTQwIDYwSDExMCIgc3Ryb2tlPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5HYW1iYXIgdGlkYWsgdGVyc2VkaWE8L3RleHQ+Cjwvc3ZnPgo='; this.alt='Gambar tidak tersedia';">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="border-t border-gray-200 p-6">
-            <div class="flex justify-end">
-                <button onclick="hideOrderDetails()"
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg font-semibold transition-colors duration-200">
-                    Tutup
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
         {{-- detail modal --}}
+        <div id="orderDetailModal"
+            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50 hidden">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                    <h3 class="text-2xl font-bold text-gray-800">
+                        Detail Pesanan <span id="modalOrderId"></span>
+                    </h3>
+                    <button onclick="hideOrderDetails()"
+                        class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="flex-1 overflow-y-auto p-6">
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="flex justify-center items-center py-12">
+                        <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="hidden text-center py-12">
+                        <div class="text-red-500 text-lg font-medium">
+                            Gagal memuat detail pesanan. Silakan coba lagi.
+                        </div>
+                    </div>
+
+                    <!-- Modal Content -->
+                    <div id="modalContent" class="hidden space-y-6">
+                        <!-- Customer and Status Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Konsumen:</label>
+                                <p id="modalCustomerName" class="text-lg text-gray-800 font-medium"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Status:</label>
+                                <span id="modalStatus"
+                                    class="px-3 py-1 inline-flex text-sm font-semibold rounded-full"></span>
+                            </div>
+                        </div>
+
+                        <!-- Petugas (if not pending) -->
+                        <div id="modalPetugasContainer" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-600 mb-1">Petugas:</label>
+                            <p id="modalPetugasName" class="text-lg text-gray-800"></p>
+                        </div>
+
+                        <!-- Service and DateTime Row -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Layanan:</label>
+                                <p id="modalService" class="text-lg text-gray-800"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600 mb-1">Tanggal & Waktu:</label>
+                                <p id="modalDateTime" class="text-lg text-gray-800"></p>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-600 mb-1">Alamat:</label>
+                            <p id="modalAddress" class="text-lg text-gray-800 leading-relaxed"></p>
+                        </div>
+
+                        <!-- Notes -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-600 mb-1">Catatan:</label>
+                            <p id="modalNotes" class="text-lg text-gray-600 italic leading-relaxed"></p>
+                        </div>
+
+                        <!-- Map Section -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-600 mb-1">Peta Lokasi:</label>
+                            <div id="lokasiMap" class="w-full h-64 rounded-lg border border-gray-300"></div>
+                        </div>
+
+                        <!-- Image Section -->
+                        <div id="modalImageContainer" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-600 mb-2">Gambar:</label>
+                            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                <img id="modalImage" class="w-full h-auto max-h-64 object-contain bg-gray-50"
+                                    alt="Order Image"
+                                    onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDE1MCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MEw2NSA1MEg4NUw3NSA0MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN0cm9rZSB3aWR0aD0iMiIgZD0iTTQwIDYwSDExMCIgc3Ryb2tlPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5HYW1iYXIgdGlkYWsgdGVyc2VkaWE8L3RleHQ+Cjwvc3ZnPgo='; this.alt='Gambar tidak tersedia';">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="border-t border-gray-200 p-6">
+                    <div class="flex justify-end">
+                        <button onclick="hideOrderDetails()"
+                            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg font-semibold transition-colors duration-200">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
         @push('scripts')
             <script>
-                // Function to show order details in modal
                 function showOrderDetails(orderId) {
-    const modal = document.getElementById('orderDetailModal');
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const errorMessage = document.getElementById('errorMessage');
-    const modalContent = document.getElementById('modalContent');
-    const modalImageContainer = document.getElementById('modalImageContainer');
-    const modalImage = document.getElementById('modalImage');
+                    const modal = document.getElementById('orderDetailModal');
+                    const loadingSpinner = document.getElementById('loadingSpinner');
+                    const errorMessage = document.getElementById('errorMessage');
+                    const modalContent = document.getElementById('modalContent');
+                    const modalImageContainer = document.getElementById('modalImageContainer');
+                    const modalImage = document.getElementById('modalImage');
 
-    // Prevent body scrolling
-    document.body.classList.add('overflow-hidden');
+                    // Prevent body scrolling
+                    document.body.classList.add('overflow-hidden');
 
-    // Show modal and loading state
-    modal.classList.remove('hidden');
-    loadingSpinner.classList.remove('hidden');
-    errorMessage.classList.add('hidden');
-    modalContent.classList.add('hidden');
-    modalImageContainer.classList.add('hidden'); // Hide image container initially
-    modalImage.src = ''; // Clear previous image source
+                    // Show modal and loading state
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex'); // Ensure it's centered using flex
+                    loadingSpinner.classList.remove('hidden');
+                    errorMessage.classList.add('hidden');
+                    modalContent.classList.add('hidden');
+                    modalImageContainer.classList.add('hidden');
+                    modalImage.src = '';
 
-    // Fetch order details
-    fetch(`/petugas/pesanan/${orderId}/detail-json`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(order => {
-            // Hide loading spinner and show content
-            loadingSpinner.classList.add('hidden');
-            modalContent.classList.remove('hidden');
+                    fetch(`/petugas/pesanan/${orderId}/detail-json`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(order => {
+                            loadingSpinner.classList.add('hidden');
+                            modalContent.classList.remove('hidden');
 
-            // Populate modal with order data
-            document.getElementById('modalOrderId').textContent = order.id; // Removed '#' to match JSON response
-            document.getElementById('modalCustomerName').textContent = order.user.name || 'N/A';
-            document.getElementById('modalService').textContent = order.paket_jasa ?.nama_paket || order.custom_request || 'N/A';
-            document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
-            document.getElementById('modalAddress').textContent = order.alamat_lokasi || 'Tidak ada alamat';
-            document.getElementById('modalNotes').textContent = order.custom_request || 'Tidak ada catatan';
+                            document.getElementById('modalOrderId').textContent = order.id;
+                            document.getElementById('modalCustomerName').textContent = order.user.name || 'N/A';
+                            document.getElementById('modalService').textContent = order.paket_jasa?.nama_paket || order
+                                .custom_request || 'N/A';
+                            document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
+                            document.getElementById('modalAddress').textContent = order.alamat_lokasi || 'Tidak ada alamat';
+                            document.getElementById('modalNotes').textContent = order.catatan || 'Tidak ada catatan';
 
-            // Set status with appropriate color
-            const statusElement = document.getElementById('modalStatus');
-            statusElement.textContent = order.status_label;
-            statusElement.className = 'px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full ' + order.status_color;
+                            const statusElement = document.getElementById('modalStatus');
+                            statusElement.textContent = order.status_label;
+                            statusElement.className = 'px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full ' +
+                                order.status_color;
 
-            // Show image if available
-            if (order.gambar) {
-                modalImage.src = order.gambar;
-                modalImageContainer.classList.remove('hidden');
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching order details:', error);
-            loadingSpinner.classList.add('hidden');
-            errorMessage.classList.remove('hidden');
-        });
-}
+                            if (order.petugas && order.status !== 'pending') {
+                                document.getElementById('modalPetugasContainer').classList.remove('hidden');
+                                document.getElementById('modalPetugasName').textContent = order.petugas.name;
+                            } else {
+                                document.getElementById('modalPetugasContainer').classList.add('hidden');
+                            }
 
-                // Function to hide order details modal
+                            if (order.gambar) {
+                                modalImage.src = order.gambar;
+                                modalImageContainer.classList.remove('hidden');
+                            }
+
+                            if (order.latitude && order.longitude && window.L) {
+                                const map = L.map('lokasiMap').setView([order.latitude, order.longitude], 16);
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '&copy; OpenStreetMap contributors'
+                                }).addTo(map);
+                                L.marker([order.latitude, order.longitude]).addTo(map);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching order details:', error);
+                            loadingSpinner.classList.add('hidden');
+                            errorMessage.classList.remove('hidden');
+                        });
+                }
+
                 function hideOrderDetails() {
                     document.getElementById('orderDetailModal').classList.add('hidden');
                 }
@@ -418,6 +446,8 @@
                         hideOrderDetails();
                     }
                 });
+
+
 
                 // Variables for confirmation modal
                 let currentOrderId = null;
@@ -505,11 +535,25 @@
                         return;
                     }
 
-                    console.log('Making request to:', `/petugas/pesanan/${currentOrderId}/status`);
-                    console.log('Request payload:', {
-                        status: currentStatus
-                    });
+                    if (currentStatus === 'diproses' && navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(position) {
+                            sendStatusUpdate(csrfToken, position.coords.latitude, position.coords.longitude);
+                        }, function(error) {
+                            hideLoadingModal();
+                            showErrorMessage('Gagal mendapatkan lokasi petugas. Pastikan izin lokasi diaktifkan.');
+                        });
+                    } else {
+                        sendStatusUpdate(csrfToken, null, null);
+                    }
+                }
 
+
+                // console.log('Making request to:', `/petugas/pesanan/${currentOrderId}/status`);
+                // console.log('Request payload:', {
+                //     status: currentStatus
+                // });
+
+                function sendStatusUpdate(csrfToken, latitude, longitude) {
                     fetch(`/petugas/pesanan/${currentOrderId}/status`, {
                             method: 'POST',
                             headers: {
@@ -519,7 +563,9 @@
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: JSON.stringify({
-                                status: currentStatus
+                                status: currentStatus,
+                                latitude: latitude,
+                                longitude: longitude
                             })
                         })
                         .then(response => {

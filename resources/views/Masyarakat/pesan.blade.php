@@ -365,6 +365,11 @@
                                     class="w-full border border-gray-300 rounded-lg p-3 focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 transition duration-200"
                                     placeholder="Masukkan alamat lengkap">
                             </div>
+                            <div id="map" class="h-64 mb-4 rounded-lg"></div>
+
+                            <input type="hidden" id="lat" name="latitude" value="{{ old('latitude') }}">
+                            <input type="hidden" id="lng" name="longitude" value="{{ old('longitude') }}">
+
 
                             <div class="grid grid-cols-2 gap-3">
                                 <div>

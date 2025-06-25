@@ -25,7 +25,10 @@ class Pesanan extends Model
             'tanggal',
             'waktu',
             'total_harga',          
-            'gambar'                
+            'gambar',
+            'latitude',
+            'longitude'
+                            
         ];
 
     protected $dates = ['deleted_at']; 
