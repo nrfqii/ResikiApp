@@ -443,7 +443,7 @@
                         if (data.success) {
                             showSuccessMessage(data.message || 'Status pesanan berhasil diperbarui!');
 
-                            if (urrentStatus === 'selesai') {
+                            if (currentStatus === 'selesai') {
                                 const row = document.getElementById(`order-row-${currentOrderId}`);
                                 if (row) {
                                     row.style.transition = 'opacity 0.5s ease-out';

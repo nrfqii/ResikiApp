@@ -86,8 +86,8 @@ class PetugasController extends Controller
                 $query->whereMonth('tanggal', Carbon::parse($request->bulan)->month)
                     ->whereYear('tanggal', Carbon::parse($request->bulan)->year);
             })
-            ->orderBy('tanggal', 'asc')
-            ->orderBy('waktu', 'asc')
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('waktu', 'desc')
             ->paginate(10);
 
         return view('Petugas.pesanan', compact('orders'));
