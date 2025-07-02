@@ -155,6 +155,44 @@ class PesananController extends Controller
             'petugas_lng' => $order->petugas ? $order->petugas->longitude : null,
         ]);
     }
+    public function getDetailJson($id)
+    {
+        $user = auth()->user(); // ambil user saat ini (login)
+
+        // Ambil data pesanan beserta relasi user, petugas, dan paket
+        $pesanan = Pesanan::with(['user', 'petugas', 'paket_jasa','ulasan']) // pastikan relasi terdefinisi
+            ->where('id', $id)
+            ->first();
+
+        if (!$pesanan) {
+            return response()->json(['message' => 'Pesanan tidak ditemukan'], 404);
+        }
+
+        // Opsional: Batasi akses hanya ke pemilik atau petugas terkait
+        if ($user->role == 'konsumen' && $pesanan->user_id !== $user->id) {
+            return response()->json(['message' => 'Akses ditolak'], 403);
+        }
+
+        // Format tanggal
+        $pesanan->tanggal_formatted = \Carbon\Carbon::parse($pesanan->tanggal)->translatedFormat('l, d F Y');
+
+        // Format status label dan warna
+        $statusClass = match ($pesanan->status) {
+            'pending' => 'bg-yellow-100 text-yellow-800',
+            'diproses' => 'bg-blue-100 text-blue-800',
+            'selesai' => 'bg-green-100 text-green-800',
+            'dibatalkan' => 'bg-red-100 text-red-800',
+            default => 'bg-gray-100 text-gray-800',
+        };
+
+        $pesanan->status_label = ucfirst($pesanan->status);
+        $pesanan->status_color = $statusClass;
+
+        // Path gambar (kalau ada)
+        $pesanan->gambar = $pesanan->gambar ? asset($pesanan->gambar) : null;
+
+        return response()->json($pesanan);
+    }
 
 
     public function riwayat()

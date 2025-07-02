@@ -45,6 +45,11 @@ Route::get('/', function () {
     return redirect("/dashboard/$role");
 });
 
+// modal
+
+Route::get('/pesanan/{id}/detail-json', [PesananController::class, 'getDetailJson'])
+    ->middleware(['auth']) // pastikan user login
+    ->name('pesanan.detail-json');
 
 // tes
 // Route::get('/order/{id}/detail', [PesananController::class, 'showDetail'])->name('order.detail');

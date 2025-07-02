@@ -11,6 +11,8 @@
     {{-- <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete" async
         defer></script> --}}
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 
     <script>
         tailwind.config = {
@@ -467,14 +469,131 @@
             <main class="flex-1 p-4 sm:p-6 lg:px-8 lg:py-6">
                 <div class="max-w-7xl mx-auto">
                     @yield('content')
+                    @include('layouts.modal')
                 </div>
             </main>
+
         </div>
     </div>
 
     @stack('scripts')
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let lokasiMap = null;
+
+        function showOrderDetails(orderId) {
+            const modal = document.getElementById('orderDetailModal');
+            const loading = document.getElementById('loadingSpinner');
+            const error = document.getElementById('errorMessage');
+            const content = document.getElementById('modalContent');
+            const imageContainer = document.getElementById('modalImageContainer');
+            const modalImage = document.getElementById('modalImage');
+
+            document.body.classList.add('overflow-hidden');
+            modal.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            error.classList.add('hidden');
+            content.classList.add('hidden');
+            imageContainer.classList.add('hidden');
+            modalImage.src = '';
+
+            fetch(`/pesanan/${orderId}/detail-json`)
+                .then(res => res.json())
+                .then(order => {
+                    loading.classList.add('hidden');
+                    content.classList.remove('hidden');
+
+                    document.getElementById('modalCustomerName').textContent = order.user.name ?? 'N/A';
+                    document.getElementById('modalService').textContent = order.paket_jasa?.nama_paket ?? order
+                        .custom_request ?? 'N/A';
+                    document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
+                    document.getElementById('modalAddress').textContent = order.alamat_lokasi ?? '-';
+                    document.getElementById('modalNotes').textContent = order.custom_request ?? '-';
+
+                    // Status
+                    const statusEl = document.getElementById('modalStatus');
+                    statusEl.textContent = order.status_label;
+                    statusEl.className =
+                        `px-3 py-1 inline-flex text-sm font-semibold rounded-full ${order.status_color}`;
+
+                    // Petugas
+                    if (order.petugas && order.status !== 'pending') {
+                        document.getElementById('modalPetugasName').textContent = order.petugas.name;
+                        document.getElementById('modalPetugasContainer').classList.remove('hidden');
+                    } else {
+                        document.getElementById('modalPetugasContainer').classList.add('hidden');
+                    }
+
+                    // Gambar
+                    if (order.gambar) {
+                        modalImage.src = order.gambar;
+                        imageContainer.classList.remove('hidden');
+                    }
+
+                    // Map
+                    if (order.latitude && order.longitude) {
+                        setTimeout(() => {
+                            if (lokasiMap) lokasiMap.remove();
+                            lokasiMap = L.map('lokasiMap').setView([order.latitude, order.longitude], 16);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(lokasiMap);
+                            L.marker([order.latitude, order.longitude]).addTo(lokasiMap)
+                                .bindPopup("Lokasi Pemesan").openPopup();
+                            lokasiMap.invalidateSize();
+                        }, 200);
+                    }
+
+
+                    // ULASAN (Rating dan Komentar)
+                    const ulasan = order.ulasan;
+                    const ratingContainer = document.getElementById('modalRating');
+                    const commentContainer = document.getElementById('modalComment');
+                    const reviewSection = document.getElementById('modalReviewSection');
+
+                    if (ulasan && (ulasan.rating || ulasan.komentar)) {
+                        ratingContainer.innerHTML = renderStarIcons(ulasan.rating || 0);
+                        commentContainer.textContent = ulasan.komentar || 'Tidak ada komentar';
+                        reviewSection.classList.remove('hidden');
+                    } else {
+                        reviewSection.classList.add('hidden');
+                    }
+
+                    // Fungsi untuk menghasilkan bintang HTML
+                    function renderStarIcons(rating) {
+                        const maxStars = 5;
+                        let stars = '';
+                        for (let i = 1; i <= maxStars; i++) {
+                            if (i <= rating) {
+                                stars += '<i class="fas fa-star text-yellow-400 text-lg mr-1"></i>'; // Bintang penuh
+                            } else {
+                                stars += '<i class="far fa-star text-gray-300 text-lg mr-1"></i>'; // Bintang kosong
+                            }
+                        }
+                        return stars;
+                    }
+
+
+                })
+                .catch(err => {
+                    console.error(err);
+                    loading.classList.add('hidden');
+                    error.classList.remove('hidden');
+                });
+        }
+
+        function hideOrderDetails() {
+            document.getElementById('orderDetailModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        document.getElementById('orderDetailModal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) hideOrderDetails();
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') hideOrderDetails();
+        });
+    </script>
 
     <script>
         let map = L.map('map');

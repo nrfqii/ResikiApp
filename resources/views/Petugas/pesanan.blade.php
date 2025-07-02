@@ -122,60 +122,35 @@
                                     <div class="flex items-center space-x-2">
                                         <a href="#" onclick="showOrderDetails({{ $order->id }})"
                                             class="text-primary hover:text-primary-dark mr-3">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                                </path>
-                                            </svg>
+                                            detail
                                         </a>
 
                                         {{-- old btn --}}
                                         @if ($order->status == 'pending')
                                             <button
-                                                onclick="showConfirmationModal({{ $order->id }}, 'dikonfirmasi', 'Terima')"
+                                              etnclick="showConfirmationModal({{ $order->id }}, 'dikonfirmasi', 'Terima')"
                                                 class="text-green-600 hover:text-green-800" title="Terima">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M5 13l4 4L19 7"></path>
-                                                </svg>
+                                                konfirmasi
                                             </button>
                                             <button
                                                 onclick="showConfirmationModal({{ $order->id }}, 'dibatalkan', 'Tolak')"
-                                                class="text-red-600 hover:text-red-800" title="Tolak">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M6 18L18 6M6 6l12 12"></path>
-                                                </svg>
+                                                clon="text-red-600 hover:text-red-800" title="Tolak">
+                                                tolak
                                             </button>
                                         @elseif($order->status == 'dikonfirmasi')
                                             <button
                                                 onclick="showConfirmationModal({{ $order->id }}, 'diproses', 'Mulai Proses')"
                                                 class="text-blue-600 hover:text-blue-800" title="Mulai Proses">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                                </svg>
+                                                proses
                                             </button>
                                         @elseif($order->status == 'diproses')
                                             <button
                                                 onclick="showConfirmationModal({{ $order->id }}, 'selesai', 'Selesaikan')"
                                                 class="text-green-600 hover:text-green-800" title="Selesai">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M5 13l4 4L19 7"></path>
-                                                </svg>
+                                                selesai
                                             </button>
                                         @endif
 
-                                        {{-- new btn --}}
-
-                                        {{-- new btn end --}}
                                     </div>
                                 </td>
                             </tr>
@@ -246,209 +221,12 @@
             </div>
         </div>
 
-        {{-- detail modal --}}
-        <div id="orderDetailModal"
-            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50 hidden">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-                <!-- Modal Header -->
-                <div class="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h3 class="text-2xl font-bold text-gray-800">
-                        Detail Pesanan <span id="modalOrderId"></span>
-                    </h3>
-                    <button onclick="hideOrderDetails()"
-                        class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12">
-                            </path>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="flex-1 overflow-y-auto p-6">
-                    <!-- Loading Spinner -->
-                    <div id="loadingSpinner" class="flex justify-center items-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent">
-                        </div>
-                    </div>
-
-                    <!-- Error Message -->
-                    <div id="errorMessage" class="hidden text-center py-12">
-                        <div class="text-red-500 text-lg font-medium">
-                            Gagal memuat detail pesanan. Silakan coba lagi.
-                        </div>
-                    </div>
-
-                    <!-- Modal Content -->
-                    <div id="modalContent" class="hidden space-y-6">
-                        <!-- Customer and Status Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-600 mb-1">Konsumen:</label>
-                                <p id="modalCustomerName" class="text-lg text-gray-800 font-medium"></p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-600 mb-1">Status:</label>
-                                <span id="modalStatus"
-                                    class="px-3 py-1 inline-flex text-sm font-semibold rounded-full"></span>
-                            </div>
-                        </div>
-
-                        <!-- Petugas (if not pending) -->
-                        <div id="modalPetugasContainer" class="hidden">
-                            <label class="block text-sm font-semibold text-gray-600 mb-1">Petugas:</label>
-                            <p id="modalPetugasName" class="text-lg text-gray-800"></p>
-                        </div>
-
-                        <!-- Service and DateTime Row -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-600 mb-1">Layanan:</label>
-                                <p id="modalService" class="text-lg text-gray-800"></p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-600 mb-1">Tanggal & Waktu:</label>
-                                <p id="modalDateTime" class="text-lg text-gray-800"></p>
-                            </div>
-                        </div>
-
-                        <!-- Address -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-600 mb-1">Alamat:</label>
-                            <p id="modalAddress" class="text-lg text-gray-800 leading-relaxed"></p>
-                        </div>
-
-                        <!-- Notes -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-600 mb-1">Catatan:</label>
-                            <p id="modalNotes" class="text-lg text-gray-600 italic leading-relaxed"></p>
-                        </div>
-
-                        <!-- Map Section -->
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-600 mb-1">Peta Lokasi:</label>
-                            <div id="lokasiMap" class="w-full h-64 rounded-lg border border-gray-300"></div>
-                        </div>
-
-                        <!-- Image Section -->
-                        <div id="modalImageContainer" class="hidden">
-                            <label class="block text-sm font-semibold text-gray-600 mb-2">Gambar:</label>
-                            <div class="border border-gray-200 rounded-lg overflow-hidden">
-                                <img id="modalImage" class="w-full h-auto max-h-64 object-contain bg-gray-50"
-                                    alt="Order Image"
-                                    onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDE1MCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MEw2NSA1MEg4NUw3NSA0MFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN0cm9rZSB3aWR0aD0iMiIgZD0iTTQwIDYwSDExMCIgc3Ryb2tlPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNkI3MjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5HYW1iYXIgdGlkYWsgdGVyc2VkaWE8L3RleHQ+Cjwvc3ZnPgo='; this.alt='Gambar tidak tersedia';">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="border-t border-gray-200 p-6">
-                    <div class="flex justify-end">
-                        <button onclick="hideOrderDetails()"
-                            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-2 rounded-lg font-semibold transition-colors duration-200">
-                            Tutup
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
 
 
         @push('scripts')
             <script>
-                function showOrderDetails(orderId) {
-                    const modal = document.getElementById('orderDetailModal');
-                    const loadingSpinner = document.getElementById('loadingSpinner');
-                    const errorMessage = document.getElementById('errorMessage');
-                    const modalContent = document.getElementById('modalContent');
-                    const modalImageContainer = document.getElementById('modalImageContainer');
-                    const modalImage = document.getElementById('modalImage');
-
-                    // Prevent body scrolling
-                    document.body.classList.add('overflow-hidden');
-
-                    // Show modal and loading state
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex'); // Ensure it's centered using flex
-                    loadingSpinner.classList.remove('hidden');
-                    errorMessage.classList.add('hidden');
-                    modalContent.classList.add('hidden');
-                    modalImageContainer.classList.add('hidden');
-                    modalImage.src = '';
-
-                    fetch(`/petugas/pesanan/${orderId}/detail-json`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Network response was not ok');
-                            }
-                            return response.json();
-                        })
-                        .then(order => {
-                            loadingSpinner.classList.add('hidden');
-                            modalContent.classList.remove('hidden');
-
-                            document.getElementById('modalOrderId').textContent = order.id;
-                            document.getElementById('modalCustomerName').textContent = order.user.name || 'N/A';
-                            document.getElementById('modalService').textContent = order.paket_jasa?.nama_paket || order
-                                .custom_request || 'N/A';
-                            document.getElementById('modalDateTime').textContent = `${order.tanggal_formatted}, ${order.waktu}`;
-                            document.getElementById('modalAddress').textContent = order.alamat_lokasi || 'Tidak ada alamat';
-                            document.getElementById('modalNotes').textContent = order.catatan || 'Tidak ada catatan';
-
-                            const statusElement = document.getElementById('modalStatus');
-                            statusElement.textContent = order.status_label;
-                            statusElement.className = 'px-3 py-1 inline-flex text-base leading-5 font-semibold rounded-full ' +
-                                order.status_color;
-
-                            if (order.petugas && order.status !== 'pending') {
-                                document.getElementById('modalPetugasContainer').classList.remove('hidden');
-                                document.getElementById('modalPetugasName').textContent = order.petugas.name;
-                            } else {
-                                document.getElementById('modalPetugasContainer').classList.add('hidden');
-                            }
-
-                            if (order.gambar) {
-                                modalImage.src = order.gambar;
-                                modalImageContainer.classList.remove('hidden');
-                            }
-
-                            if (order.latitude && order.longitude && window.L) {
-                                const map = L.map('lokasiMap').setView([order.latitude, order.longitude], 16);
-                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                    attribution: '&copy; OpenStreetMap contributors'
-                                }).addTo(map);
-                                L.marker([order.latitude, order.longitude]).addTo(map);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching order details:', error);
-                            loadingSpinner.classList.add('hidden');
-                            errorMessage.classList.remove('hidden');
-                        });
-                }
-
-                function hideOrderDetails() {
-                    document.getElementById('orderDetailModal').classList.add('hidden');
-                }
-
-                // Close modal when clicking outside
-                document.getElementById('orderDetailModal').addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        hideOrderDetails();
-                    }
-                });
-
-                // Close modal with Escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && !document.getElementById('orderDetailModal').classList.contains('hidden')) {
-                        hideOrderDetails();
-                    }
-                });
-
-
-
+                
                 // Variables for confirmation modal
                 let currentOrderId = null;
                 let currentStatus = null;

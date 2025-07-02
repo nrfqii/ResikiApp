@@ -34,8 +34,7 @@ class MasyarakatController extends Controller
 
         // Mengambil pesanan terbaru 
         $recentOrders = Pesanan::where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
+            ->orderBy('tanggal', 'desc')
             ->get();
 
         // Melewatkan data ke view

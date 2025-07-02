@@ -133,8 +133,9 @@ class PetugasController extends Controller
             if ($request->status === 'dibatalkan') {
                 \Log::info("Pesanan #{$id} dibatalkan oleh petugas " . Auth::user()->name);
 
-                $pesanan->ulasan()->delete();
-                $pesanan->delete();
+                $pesanan->status = 'dibatalkan';
+                $pesanan->petugas_id = Auth::id(); // atau Auth::user()->id
+                $pesanan->save();
 
                 return response()->json([
                     'success' => true,

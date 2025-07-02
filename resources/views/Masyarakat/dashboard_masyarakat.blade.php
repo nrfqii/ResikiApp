@@ -122,7 +122,7 @@
                             </p>
                             <p class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($order->tanggal)->format('d F Y') }}
                             </p>
-                            <button onclick="showOrderDetail({{ $order->id }})"
+                            <button onclick="showOrderDetails({{ $order->id }})"
                                 class="text-primary hover:text-primary-dark text-sm font-medium mt-2 inline-block">Detail</button>
                         </div>
                     @endforeach
@@ -185,7 +185,7 @@
                                         </span>
                                     </td>
                                     <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button onclick="showOrderDetail({{ $order->id }})"
+                                        <button onclick="showOrderDetails({{ $order->id }})"
                                             class="text-primary hover:text-primary-dark">Detail</button>
                                     </td>
                                 </tr>
@@ -237,210 +237,11 @@
             </div>
         </div>
     </div>
-    {{-- Modal for Order Details --}}
-    <div id="orderDetailModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-2xl bg-white">
-            {{-- Modal header --}}
-            <div class="flex justify-between items-center pb-3 border-b">
-                <h3 class="text-xl font-bold text-gray-800">Detail Pesanan <span id="modalOrderId">
-
-                    </span></h3>
-
-
-                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
-                    </svg>
-                </button>
-            </div>
-
-            {{-- Loading spinner --}}
-            <div id="loadingSpinner" class="py-8 flex justify-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            </div>
-
-            {{-- Error message --}}
-            <div id="errorModalMessage" class="hidden py-8 text-center text-red-500">
-                Gagal memuat detail pesanan. Silakan coba lagi.
-            </div>
-
-            {{-- Modal content --}}
-            <div id="modalContent" class="py-4 space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @if (!empty($order->gambar))
-                        <div class="md:col-span-2 flex flex-col items-start">
-                            <p class="text-sm text-gray-500 mb-1">Gambar</p>
-                            <img src="{{ asset($order->gambar) }}" alt="Gambar Pesanan" ...>
-                        </div>
-                    @endif
-                    {{ $order->gambar }}
-                    <div>
-                        <p class="text-sm text-gray-500">Layanan</p>
-                        <p class="font-medium" id="modalService"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Status</p>
-                        <p class="font-medium" id="modalStatus"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Tanggal</p>
-                        <p class="font-medium" id="modalDate"></p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Waktu</p>
-                        <p class="font-medium" id="modalTime"></p>
-                    </div>
-                    <div class="md:col-span-2">
-                        <p class="text-sm text-gray-500">Lokasi</p>
-                        <p class="font-medium" id="modalLocation"></p>
-                    </div>
-                    <div class="md:col-span-2">
-                        <p class="text-sm text-gray-500 mb-1">Peta Lokasi</p>
-                        <div id="lokasiMap" class="w-full h-64 rounded-lg border border-gray-300"></div>
-                    </div>
-
-
-                    <div class="md:col-span-2">
-                        <p class="text-sm text-gray-500">Catatan Khusus</p>
-                        <p class="font-medium" id="modalCustomRequest"></p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">Harga</p>
-                        <p class="font-medium" id="modalPrice"></p>
-                    </div>
-                </div>
-
-                {{-- Review section (hidden by default) --}}
-                <div id="modalReviewSection" class="hidden pt-4 border-t mt-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Ulasan Anda</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-sm text-gray-500">Rating</p>
-                            <p class="font-medium" id="modalRating"></p>
-                        </div>
-                        <div class="md:col-span-2">
-                            <p class="text-sm text-gray-500">Komentar</p>
-                            <p class="font-medium" id="modalComment"></p>
-                        </div>
-                    </div>
-                </div>
-                <div id="modalImageContainer" class="hidden">
-                    <p class="text-sm text-gray-500 mb-1">Gambar Pesanan</p>
-                    <img id="modalImage" src="" alt="Gambar Pesanan"
-                        class="max-w-full h-auto rounded-lg border border-gray-200">
-                </div>
-            </div>
-
-            {{-- Modal footer --}}
-            <div class="flex justify-end pt-4 border-t">
-                <button onclick="closeModal()"
-                    class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
-                    Tutup
-                </button>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')
     <script>
-        let lokasiMap = null;
-
-        function showOrderDetail(orderId) {
-            orderDetailModal.classList.remove('hidden');
-            loadingSpinner.classList.remove('hidden');
-            errorModalMessage.classList.add('hidden');
-
-            modalContent.querySelectorAll('p[id^="modal"]').forEach(p => p.textContent = '');
-            document.getElementById('modalReviewSection').classList.add('hidden');
-            document.getElementById('modalImageContainer').classList.add('hidden');
-
-            fetch(`/konsumen/pesanan/${orderId}/detail`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    loadingSpinner.classList.add('hidden');
-
-                    // 📝 Set detail
-                    // document.getElementById('modalOrderId').textContent = '#' + data.id;
-                    document.getElementById('modalService').textContent = data.layanan;
-                    document.getElementById('modalStatus').textContent = data.status;
-                    document.getElementById('modalDate').textContent = data.tanggal;
-                    document.getElementById('modalTime').textContent = data.waktu;
-                    document.getElementById('modalLocation').textContent = data.alamat_lokasi;
-                    document.getElementById('modalCustomRequest').textContent = data.catatan || '-';
-                    document.getElementById('modalPrice').textContent = data.total_harga;
-
-                    if (data.gambar) {
-                        const imgContainer = document.getElementById('modalImageContainer');
-                        const imgElement = document.getElementById('modalImage');
-                        imgElement.src = data.gambar;
-                        imgContainer.classList.remove('hidden');
-                    }
-
-                    if (data.rating !== null && data.komentar_ulasan !== null) {
-                        document.getElementById('modalRating').textContent = data.rating;
-                        document.getElementById('modalComment').textContent = data.komentar_ulasan;
-                        document.getElementById('modalReviewSection').classList.remove('hidden');
-                    }
-
-                    // 🗺️ Render MAP
-                    setTimeout(() => {
-                        resetLeafletMapContainer('lokasiMap'); // ini kunci utama
-
-                        lokasiMap = L.map('lokasiMap').setView([data.latitude, data.longitude], 16);
-
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; OpenStreetMap contributors'
-                        }).addTo(lokasiMap);
-
-                        L.marker([data.latitude, data.longitude])
-                            .addTo(lokasiMap)
-                            .bindPopup("Lokasi Pesanan")
-                            .openPopup();
-
-                        // Marker petugas jika status === 'diproses'
-                        if (data.status === 'diproses' && data.petugas_lat && data.petugas_lng) {
-                            L.marker([data.petugas_lat, data.petugas_lng], {
-                                    icon: L.icon({
-                                        iconUrl: '/icons/logo.jpg',
-                                        iconSize: [30, 40],
-                                        iconAnchor: [15, 40]
-                                    })
-                                })
-                                .addTo(lokasiMap)
-                                .bindPopup("Lokasi Petugas");
-                        }
-
-                        lokasiMap.invalidateSize();
-                    }, 300);
-
-                })
-                .catch(error => {
-                    console.error('Error fetching order detail:', error);
-                    loadingSpinner.classList.add('hidden');
-                    errorModalMessage.classList.remove('hidden');
-                });
-        }
-
-        function closeModal() {
-            if (lokasiMap !== null) {
-                lokasiMap.remove();
-                lokasiMap = null;
-            }
-            orderDetailModal.classList.add('hidden');
-        }
-
-        // Tutup modal saat klik area luar
-        orderDetailModal.addEventListener('click', function(event) {
-            if (event.target === orderDetailModal) {
-                closeModal();
-            }
-        });
+        
         // Fungsi bantu untuk reset elemen map
         function resetLeafletMapContainer(id) {
             const container = L.DomUtil.get(id);
@@ -450,12 +251,4 @@
             }
         }
     </script>
-
-    <style>
-        #modalImage {
-            max-height: 300px;
-            object-fit: contain;
-            margin-bottom: 1rem;
-        }
-    </style>
 @endpush
