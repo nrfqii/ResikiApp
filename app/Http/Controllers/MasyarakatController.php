@@ -45,4 +45,30 @@ class MasyarakatController extends Controller
             'recentOrders'
         ));
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $user = Auth::user();
+        $pesanan = Pesanan::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+
+        $request->validate([
+            'status' => 'required|in:selesai',
+        ]);
+
+        if ($pesanan->status !== 'diproses') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan belum dapat diselesaikan.'
+            ], 400);
+        }
+
+        $pesanan->status = 'selesai';
+        $pesanan->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil ditandai selesai.'
+        ]);
+    }
+
 }

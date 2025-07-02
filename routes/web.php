@@ -14,6 +14,7 @@ Route::get('/pesan/{id}', [PesananController::class, 'show'])->name('pesan.show'
 Route::get('/riwayat-pesanan', [PesananController::class, 'riwayat'])->name('pesan.riwayat')->middleware('auth');
 Route::get('/dashboard/konsumen', [MasyarakatController::class, 'dashboard'])->name('dashboard');
 Route::get('/konsumen/pesanan/{id}/detail', [PesananController::class, 'showDetail'])->name('pesanan.detail');
+Route::post('/konsumen/pesanan/{id}/status', [MasyarakatController::class, 'updateStatus'])->name('konsumen.pesanan.update-status');
 
 // Ulasan
 Route::get('/ulasan', [UlasanController::class, 'index'])->name('ulasan.index');

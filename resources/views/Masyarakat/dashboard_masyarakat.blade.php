@@ -139,6 +139,10 @@
                                     class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Layanan</th>
                                 <th scope="col"
+                                    class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                                    Harga
+                                </th>
+                                <th scope="col"
                                     class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Tanggal</th>
                                 <th scope="col"
@@ -156,6 +160,9 @@
                                         {{ $index + 1 }}</td> {{-- Changed from $order->id to $index + 1 --}}
                                     <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ $order->nama_paket ?? $order->custom_request }}</td>
+                                    <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
+                                        Rp {{ number_format($order->harga_paket, 0, ',', '.') }}
+                                    </td>
                                     <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ \Carbon\Carbon::parse($order->tanggal)->format('d F Y') }}</td>
                                     <td class="px-3 py-4 whitespace-nowrap">
@@ -187,6 +194,13 @@
                                     <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
                                         <button onclick="showOrderDetails({{ $order->id }})"
                                             class="text-primary hover:text-primary-dark">Detail</button>
+                                        @if ($order->status === 'diproses')
+                                            <button
+                                                onclick="showConfirmationModal({{ $order->id }}, 'selesai', 'Selesaikan')"
+                                                class="px-2 text-success hover:text-success-dark  ">
+                                                Tandai Selesai
+                                            </button>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -237,18 +251,284 @@
             </div>
         </div>
     </div>
-@endsection
+    <!-- Modal Konfirmasi -->
+    <div id="confirmationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                    <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2" id="modal-title">Konfirmasi Aksi</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500" id="modal-message">Apakah Anda yakin?</p>
 
-@push('scripts')
-    <script>
-        
-        // Fungsi bantu untuk reset elemen map
-        function resetLeafletMapContainer(id) {
-            const container = L.DomUtil.get(id);
-            if (container != null) {
-                container._leaflet_id = null; // ini penting!
-                container.innerHTML = ""; // bersihkan isi div
+                </div>
+
+
+                <div class="items-center px-4 py-3">
+                    <button id="confirmButton"
+                        class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                        Ya
+                    </button>
+                    <button id="cancelButton"
+                        class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-24 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-1/2 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white transform -translate-y-1/2">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <svg class="animate-spin h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                            stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2">Memproses...</h3>
+                <p class="text-sm text-gray-500 mt-2">Mohon tunggu, sedang memperbarui status pesanan.</p>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+        <script>
+            // Fungsi bantu untuk reset elemen map
+            function resetLeafletMapContainer(id) {
+                const container = L.DomUtil.get(id);
+                if (container != null) {
+                    container._leaflet_id = null; // ini penting!
+                    container.innerHTML = ""; // bersihkan isi div
+                }
             }
-        }
-    </script>
-@endpush
+
+            let currentOrderId = null;
+            let currentStatus = null;
+            let currentAction = null;
+
+            function showConfirmationModal(orderId, newStatus, actionName) {
+                currentOrderId = orderId;
+                currentStatus = newStatus;
+                currentAction = actionName;
+
+                const statusMessages = {
+                    'selesai': 'Apakah Anda yakin pesanan ini sudah selesai dikerjakan?'
+                };
+
+                const buttonColors = {
+                    'selesai': 'bg-green-500 hover:bg-green-600'
+                };
+
+                document.getElementById('modal-title').textContent = `Konfirmasi ${actionName}`;
+                document.getElementById('modal-message').textContent = statusMessages[newStatus] || 'Apakah Anda yakin?';
+
+                const confirmButton = document.getElementById('confirmButton');
+                confirmButton.textContent = actionName;
+                confirmButton.className =
+                    `px-4 py-2 text-white text-base font-medium rounded-md w-24 mr-2 focus:outline-none focus:ring-2 ${buttonColors[newStatus]}`;
+
+                document.getElementById('confirmationModal').classList.remove('hidden');
+            }
+
+            function hideConfirmationModal() {
+                document.getElementById('confirmationModal').classList.add('hidden');
+                // Don't reset the variables here, keep them for the confirmation
+            }
+
+            function showLoadingModal() {
+                document.getElementById('loadingModal').classList.remove('hidden');
+            }
+
+            function hideLoadingModal() {
+                document.getElementById('loadingModal').classList.add('hidden');
+            }
+
+            function updateOrderStatus() {
+                console.log('updateOrderStatus called with:', currentOrderId, currentStatus);
+
+                if (!currentOrderId || !currentStatus) {
+                    console.error('Missing data:', {
+                        currentOrderId,
+                        currentStatus
+                    });
+                    alert('Terjadi kesalahan sistem: Data pesanan tidak valid');
+                    return;
+                }
+
+                hideConfirmationModal();
+                showLoadingModal();
+
+                let csrfToken = null;
+                const metaToken = document.querySelector('meta[name="csrf-token"]');
+                if (metaToken) {
+                    csrfToken = metaToken.getAttribute('content');
+                } else {
+                    const tokenInput = document.querySelector('input[name="_token"]');
+                    if (tokenInput) {
+                        csrfToken = tokenInput.value;
+                    }
+                }
+
+                if (!csrfToken) {
+                    console.error('CSRF token not found');
+                    hideLoadingModal();
+                    showErrorMessage('Token keamanan tidak ditemukan. Silakan refresh halaman.');
+                    return;
+                }
+
+                // Panggil fungsi update ke server
+                sendStatusUpdate(csrfToken); // untuk konsumen, tidak perlu koordinat
+            }
+
+            function sendStatusUpdate(csrfToken) {
+                // Siapkan payload dasar
+                const payload = {
+                    status: currentStatus,
+                };
+
+
+                // Jika status dikonfirmasi dan ada input harga
+
+                fetch(`/konsumen/pesanan/${currentOrderId}/status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        console.log('Response headers:', response.headers);
+
+                        return response.text().then(text => {
+                            console.log('Response text:', text);
+
+                            if (!response.ok) {
+                                try {
+                                    const errorData = JSON.parse(text);
+                                    throw new Error(
+                                        `HTTP ${response.status}: ${errorData.message || errorData.error || 'Server Error'}`
+                                    );
+                                } catch (parseError) {
+                                    throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}...`);
+                                }
+                            }
+
+                            try {
+                                return JSON.parse(text);
+                            } catch (parseError) {
+                                throw new Error('Invalid JSON response from server');
+                            }
+                        });
+                    })
+                    .then(data => {
+                        hideLoadingModal();
+                        console.log('Success response:', data);
+
+                        if (data.success) {
+                            showSuccessMessage(data.message || 'Status pesanan berhasil diperbarui!');
+
+                            if (urrentStatus === 'selesai') {
+                                const row = document.getElementById(`order-row-${currentOrderId}`);
+                                if (row) {
+                                    row.style.transition = 'opacity 0.5s ease-out';
+                                    row.style.opacity = '0';
+                                    setTimeout(() => {
+                                        row.remove();
+                                    }, 500);
+                                }
+                            } else {
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                            }
+                        } else {
+                            showErrorMessage(data.message || 'Gagal memperbarui status pesanan');
+                        }
+                    })
+                    .catch(error => {
+                        hideLoadingModal();
+                        console.error('Full error details:', error);
+                        showErrorMessage(`Error: ${error.message}`);
+                    })
+                    .finally(() => {
+                        currentOrderId = null;
+                        currentStatus = null;
+                        currentAction = null;
+                    });
+            }
+
+            function showSuccessMessage(message) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className =
+                    'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+                alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>
+            ${message}
+        </div>
+    `;
+
+                document.body.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    alertDiv.classList.remove('translate-x-full');
+                }, 100);
+
+                setTimeout(() => {
+                    alertDiv.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        document.body.removeChild(alertDiv);
+                    }, 300);
+                }, 3000);
+            }
+
+            function showErrorMessage(message) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className =
+                    'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+                alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+            ${message}
+        </div>
+    `;
+
+                document.body.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    alertDiv.classList.remove('translate-x-full');
+                }, 100);
+
+                setTimeout(() => {
+                    alertDiv.classList.add('translate-x-full');
+                    setTimeout(() => {
+                        document.body.removeChild(alertDiv);
+                    }, 300);
+                }, 4000);
+            }
+
+            document.getElementById('confirmButton').addEventListener('click', updateOrderStatus);
+            document.getElementById('cancelButton').addEventListener('click', hideConfirmationModal);
+        </script>
+    @endpush
+@endsection

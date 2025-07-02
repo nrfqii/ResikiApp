@@ -143,16 +143,16 @@ class PetugasController extends Controller
                 ]);
             }
 
-            // DEBUG: Jika dikonfirmasi, log detail pesanan
-            // if ($request->status === 'dikonfirmasi') {
-            //     \Log::debug("=== DEBUG KONFIRMASI PESANAN ===");
-            //     \Log::debug("ID Pesanan: " . $pesanan->id);
-            //     \Log::debug("Status Sebelumnya: " . $pesanan->status);
-            //     \Log::debug("User Pemesan: " . ($pesanan->user->name ?? 'N/A'));
-            //     \Log::debug("Alamat: " . ($pesanan->alamat_lokasi ?? 'Tidak ada'));
-            //     \Log::debug("Catatan: " . ($pesanan->catatan ?? 'Tidak ada'));
-            //     \Log::debug("Service: " . ($pesanan->paket_jasa->nama_paket ?? $pesanan->custom_request ?? 'Custom kosong'));
-            // }
+            if ($request->status === 'dikonfirmasi') {
+                $pesanan->status = 'dikonfirmasi';
+
+                if ($request->filled('harga_paket')) {
+                    $pesanan->harga_paket = $request->harga_paket;
+                }
+
+                $pesanan->petugas_id = auth()->id();
+            }
+
 
             if ($request->status === 'diproses') {
                 $user = Auth::user();
@@ -162,12 +162,16 @@ class PetugasController extends Controller
             }
 
             // Update status dan catatan (jika ada)
-            $pesanan->update([
-                'status' => $request->status,
-                'catatan' => $request->filled('catatan') ? $request->catatan : null,
-                'updated_at' => now(),
-                'petugas_id' => Auth::id()
-            ]);
+            $pesanan->status = $request->status;
+            $pesanan->updated_at = now();
+            $pesanan->petugas_id = Auth::id();
+
+            if ($request->filled('harga_paket')) {
+                $pesanan->harga_paket = $request->harga_paket;
+            }
+
+            $pesanan->save(); // Simpan semua perubahan terakhir di sini
+
 
             $statusMessages = [
                 'dikonfirmasi' => 'Pesanan berhasil dikonfirmasi.',

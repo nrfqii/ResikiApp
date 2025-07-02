@@ -66,6 +66,10 @@
                                 Layanan
                             </th>
                             <th scope="col"
+                                class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                                Harga
+                            </th>
+                            <th scope="col"
                                 class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                                 Tanggal & Waktu
                             </th>
@@ -82,7 +86,7 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($orders as $index => $order)
                             {{-- Tetap menggunakan $orders --}}
-                            <tr id="order-row-{{ $order->id }}">
+                            <tr id="order-row-{{ $order->id }}" data-harga="{{ $order->harga_paket }}">
                                 <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     #{{ $order->id }}
                                 </td>
@@ -91,6 +95,9 @@
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
                                     {{ $order->nama_paket ?? $order->custom_request }}
+                                </td>
+                                <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
+                                    Rp {{ number_format($order->harga_paket, 0, ',', '.') }}
                                 </td>
                                 <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                     {{ \Carbon\Carbon::parse($order->tanggal)->format('d M Y') }}, {{ $order->waktu }}
@@ -128,7 +135,7 @@
                                         {{-- old btn --}}
                                         @if ($order->status == 'pending')
                                             <button
-                                              etnclick="showConfirmationModal({{ $order->id }}, 'dikonfirmasi', 'Terima')"
+                                                onclick="showConfirmationModal({{ $order->id }}, 'dikonfirmasi', 'Terima')"
                                                 class="text-green-600 hover:text-green-800" title="Terima">
                                                 konfirmasi
                                             </button>
@@ -184,10 +191,20 @@
                     </div>
                     <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2" id="modal-title">Konfirmasi Aksi</h3>
                     <div class="mt-2 px-7 py-3">
-                        <p class="text-sm text-gray-500" id="modal-message">
-                            Apakah Anda yakin ingin melakukan tindakan ini?
-                        </p>
+                        <p class="text-sm text-gray-500" id="modal-message">Apakah Anda yakin?</p>
+
+                        <!-- Harga hanya jika konfirmasi -->
+                        <div id="customPriceInputContainer" class="hidden mt-3 text-left">
+                            <label for="customPriceInput" class="block text-sm font-medium text-gray-700">Harga
+                                Paket</label>
+                            <input type="number" id="customPriceInput" name="custom_price" min="0"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                                placeholder="Masukkan harga (Rp)">
+                        </div>
+
                     </div>
+
+
                     <div class="items-center px-4 py-3">
                         <button id="confirmButton"
                             class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
@@ -201,6 +218,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- Loading Modal -->
         <div id="loadingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
@@ -221,28 +239,24 @@
             </div>
         </div>
 
-        
+
 
 
         @push('scripts')
             <script>
-                
                 // Variables for confirmation modal
                 let currentOrderId = null;
                 let currentStatus = null;
                 let currentAction = null;
 
                 function showConfirmationModal(orderId, newStatus, actionName) {
-                    // Set the global variables properly
                     currentOrderId = orderId;
                     currentStatus = newStatus;
                     currentAction = actionName;
 
-                    console.log('Setting currentOrderId to:', currentOrderId); // Debug log
-
                     const statusMessages = {
                         'dikonfirmasi': 'Apakah Anda yakin ingin menerima pesanan ini?',
-                        'dibatalkan': 'Apakah Anda yakin ingin menolak pesanan ini? Data pesanan akan dihapus.',
+                        'dibatalkan': 'Apakah Anda yakin ingin menolak pesanan ini?',
                         'diproses': 'Apakah Anda yakin ingin memulai proses pesanan ini?',
                         'selesai': 'Apakah Anda yakin pesanan ini sudah selesai dikerjakan?'
                     };
@@ -261,6 +275,23 @@
                     confirmButton.textContent = actionName;
                     confirmButton.className =
                         `px-4 py-2 text-white text-base font-medium rounded-md w-24 mr-2 focus:outline-none focus:ring-2 ${buttonColors[newStatus]}`;
+
+                    const priceContainer = document.getElementById('customPriceInputContainer');
+                    const priceInput = document.getElementById('customPriceInput');
+
+                    if (newStatus === 'dikonfirmasi') {
+                        // Ambil harga dari atribut HTML baris
+                        const row = document.getElementById(`order-row-${orderId}`);
+                        console.log('Found row:', row); // Debug log
+                        const harga = row?.dataset.harga || 0;
+                        console.log('Harga found:', harga); // Debug log
+
+                        priceContainer.classList.remove('hidden');
+                        priceInput.value = harga;
+                    } else {
+                        priceContainer.classList.add('hidden');
+                        priceInput.value = '';
+                    }
 
                     document.getElementById('confirmationModal').classList.remove('hidden');
                 }
@@ -285,7 +316,7 @@
                         console.error('Missing data:', {
                             currentOrderId,
                             currentStatus
-                        }); // Debug log
+                        });
                         alert('Terjadi kesalahan sistem: Data pesanan tidak valid');
                         return;
                     }
@@ -299,7 +330,6 @@
                     if (metaToken) {
                         csrfToken = metaToken.getAttribute('content');
                     } else {
-                        // Fallback: try to get from any form with csrf token
                         const tokenInput = document.querySelector('input[name="_token"]');
                         if (tokenInput) {
                             csrfToken = tokenInput.value;
@@ -313,25 +343,53 @@
                         return;
                     }
 
+                    // Ambil input harga jika status dikonfirmasi
+                    let customPrice = null;
+                    if (currentStatus === 'dikonfirmasi') {
+                        const priceInput = document.getElementById('customPriceInput');
+                        if (priceInput && priceInput.value.trim() !== '') {
+                            customPrice = parseInt(priceInput.value);
+                            if (isNaN(customPrice)) {
+                                hideLoadingModal();
+                                showErrorMessage('Harga tidak valid.');
+                                return;
+                            }
+                        }
+                    }
+
                     if (currentStatus === 'diproses' && navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(function(position) {
-                            sendStatusUpdate(csrfToken, position.coords.latitude, position.coords.longitude);
+                            sendStatusUpdate(csrfToken, position.coords.latitude, position.coords.longitude, customPrice);
                         }, function(error) {
                             hideLoadingModal();
                             showErrorMessage('Gagal mendapatkan lokasi petugas. Pastikan izin lokasi diaktifkan.');
                         });
                     } else {
-                        sendStatusUpdate(csrfToken, null, null);
+                        sendStatusUpdate(csrfToken, null, null, customPrice);
                     }
                 }
 
 
-                // console.log('Making request to:', `/petugas/pesanan/${currentOrderId}/status`);
-                // console.log('Request payload:', {
-                //     status: currentStatus
-                // });
-
                 function sendStatusUpdate(csrfToken, latitude, longitude) {
+                    // Siapkan payload dasar
+                    const payload = {
+                        status: currentStatus,
+                        latitude: latitude,
+                        longitude: longitude,
+                        harga_paket: currentStatus === 'dikonfirmasi' ? document.getElementById('customPriceInput')?.value : null
+                    };
+
+                    // Jika status dikonfirmasi dan ada input harga
+                    if (currentStatus === 'dikonfirmasi') {
+                        const priceInput = document.getElementById('customPriceInput');
+                        if (priceInput && priceInput.value.trim() !== '') {
+                            const parsedPrice = parseInt(priceInput.value);
+                            if (!isNaN(parsedPrice)) {
+                                payload.harga_paket = parsedPrice;
+                            }
+                        }
+                    }
+
                     fetch(`/petugas/pesanan/${currentOrderId}/status`, {
                             method: 'POST',
                             headers: {
@@ -340,22 +398,16 @@
                                 'Accept': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
-                            body: JSON.stringify({
-                                status: currentStatus,
-                                latitude: latitude,
-                                longitude: longitude
-                            })
+                            body: JSON.stringify(payload)
                         })
                         .then(response => {
                             console.log('Response status:', response.status);
                             console.log('Response headers:', response.headers);
 
-                            // Try to get response text for debugging
                             return response.text().then(text => {
                                 console.log('Response text:', text);
 
                                 if (!response.ok) {
-                                    // Try to parse as JSON for error details
                                     try {
                                         const errorData = JSON.parse(text);
                                         throw new Error(
@@ -366,7 +418,6 @@
                                     }
                                 }
 
-                                // Parse successful response
                                 try {
                                     return JSON.parse(text);
                                 } catch (parseError) {
@@ -379,10 +430,8 @@
                             console.log('Success response:', data);
 
                             if (data.success) {
-                                // Show success message
                                 showSuccessMessage(data.message || 'Status pesanan berhasil diperbarui!');
 
-                                // Remove row from table if status is "dibatalkan" or "selesai"
                                 if (currentStatus === 'dibatalkan' || currentStatus === 'selesai') {
                                     const row = document.getElementById(`order-row-${currentOrderId}`);
                                     if (row) {
@@ -394,7 +443,6 @@
                                         }, 500);
                                     }
                                 } else {
-                                    // Reload page for other status changes to show updated buttons
                                     setTimeout(() => {
                                         window.location.reload();
                                     }, 1500);
@@ -409,7 +457,6 @@
                             showErrorMessage(`Error: ${error.message}`);
                         })
                         .finally(() => {
-                            // Reset variables after the request is complete
                             currentOrderId = null;
                             currentStatus = null;
                             currentAction = null;
