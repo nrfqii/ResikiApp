@@ -12,7 +12,8 @@
         defer></script> --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
         tailwind.config = {
@@ -255,6 +256,7 @@
             </div>
 
             <!-- User Profile -->
+             <a href="/profile" >
             <div class="p-6 border-b border-white/20">
                 <div class="flex items-center space-x-3">
                     <div
@@ -271,6 +273,7 @@
                     <div class="w-3 h-3 bg-green-400 rounded-full pulse-animation"></div>
                 </div>
             </div>
+            </a>
 
             <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-2 custom-scrollbar overflow-y-auto">
@@ -376,6 +379,16 @@
                             </svg>
                             <span class="font-medium nav-text smooth-transition">Riwayat</span>
                             <div class="tooltip">Riwayat</div>
+                        </a>
+                        <a href="/petugas/keuangan"
+                           class="nav-item flex items-center px-4 py-3 rounded-xl smooth-transition relative {{ request()->is('petugas/keuangan*') ? 'bg-white/20 shadow-lg' : 'hover:bg-white/10' }}">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0 smooth-transition"
+                                 :class="{ 'mr-0': sidebarCollapsed && !isMobile, 'mr-3': !(sidebarCollapsed && !isMobile) }"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium nav-text smooth-transition">Keuangan</span>
+                            <div class="tooltip">Keuangan</div>
                         </a>
                     </div>
                 @endif

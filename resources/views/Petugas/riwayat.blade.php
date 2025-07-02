@@ -1,4 +1,3 @@
-{{-- {{ dd($historicalOrders) }} --}}
 @extends('layouts.main')
 
 @section('title', 'Riwayat Pesanan')
@@ -15,19 +14,39 @@
             Riwayat Tugas
         </h2>
 
-        <div
-            class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <input type="text" placeholder="Cari ID Pesanan atau Konsumen..."
-                class="w-full sm:w-2/3 md:w-1/2 p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 smooth-transition">
-            <input type="date"
-                class="w-full sm:w-auto p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 smooth-transition">
-            <select
-                class="w-full sm:w-auto p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 smooth-transition">
-                <option value="">Semua Status</option>
-                <option value="selesai">Selesai</option>
-                <option value="dibatalkan">Dibatalkan</option>
-            </select>
-        </div>
+        {{-- Formulir Filter --}}
+        <form method="GET" action="{{ route('petugas.riwayat') }}" class="mb-6">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex-1">
+                    <input type="text" name="search" placeholder="Cari ID Pesanan, Konsumen, atau Layanan..."
+                        value="{{ request('search') }}"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 smooth-transition">
+                </div>
+                <div class="w-full sm:w-48">
+                    <input type="month" name="bulan" value="{{ request('bulan') }}"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 smooth-transition">
+                </div>
+                <div class="w-full sm:w-48">
+                    <select name="status"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 smooth-transition">
+                        <option value="">Semua Status</option>
+                        <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                        <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan
+                        </option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit"
+                        class="bg-primary hover:bg-primary-dark text-white px-4 py-3 rounded-lg smooth-transition">
+                        Filter
+                    </button>
+                    <a href="{{ route('petugas.riwayat') }}"
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-3 rounded-lg smooth-transition">
+                        Reset
+                    </a>
+                </div>
+            </div>
+        </form>
 
         <div class="overflow-x-auto custom-scrollbar -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
             <table class="min-w-full divide-y divide-gray-200">
@@ -35,7 +54,7 @@
                     <tr>
                         <th scope="col"
                             class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            NO.
+                            ID Pesanan
                         </th>
                         <th scope="col"
                             class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -47,7 +66,7 @@
                         </th>
                         <th scope="col"
                             class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                            Tanggal Selesai
+                            Tanggal Selesai / Dibatalkan
                         </th>
                         <th scope="col"
                             class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -61,10 +80,10 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {{-- Loop melalui data riwayat pesanan dari controller --}}
-                    @forelse($historicalOrders as $index => $order)
+                    @forelse($historicalOrders as $order) {{-- Menghapus $index karena ID Pesanan sudah ada --}}
                         <tr>
                             <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {{ $index + 1 }}
+                                #{{ $order->id }}
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $order->user->name ?? 'N/A' }}
@@ -94,6 +113,7 @@
                                 @endif
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
+                                {{-- Pastikan fungsi showOrderDetails ini mengarah ke detail riwayat pesanan, bukan pesanan aktif --}}
                                 <a href="#" onclick="showOrderDetails({{ $order->id }})"
                                     class="text-primary hover:text-primary-dark mr-3">Detail</a>
                             </td>
@@ -108,9 +128,10 @@
             </table>
         </div>
 
-        {{-- Contoh Paginasi --}}
+        {{-- Paginasi --}}
         <div class="mt-6">
-            {{ $historicalOrders->links() }}
+            {{ $historicalOrders->appends(request()->query())->links() }}
         </div>
     </div>
+
 @endsection

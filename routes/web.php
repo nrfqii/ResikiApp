@@ -5,8 +5,14 @@ use App\Http\Controllers\MasyarakatController;
 use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\UlasanController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 
-
+// Profile routes
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+});
 // Pesan
 Route::get('/pesan', [PesananController::class, 'index'])->name('pesan.index')->middleware('auth');
 Route::post('/pesan/store', [PesananController::class, 'store'])->name('pesan.store')->middleware('auth');
@@ -29,6 +35,8 @@ Route::get('/petugas/riwayat', [PetugasController::class, 'riwayatPesanan'])->na
 Route::post('/petugas/pesanan/{id}/status', [PetugasController::class, 'updateStatus'])->name('petugas.pesanan.update-status');
 Route::get('/pesanan/{id}/info', [PetugasController::class, 'getOrderInfo'])->name('petugas.pesanan.info');
 Route::get('/petugas/pesanan/{id}/detail-json', [PetugasController::class, 'getOrderDetailsJson'])->name('petugas.pesanan.detail-json');
+Route::get('/petugas/keuangan', [PetugasController::class, 'keuangan'])->name('petugas.keuangan')->middleware('auth');
+Route::post('/petugas/pesanan/{id}/update-harga', [PetugasController::class, 'updateHarga'])->name('petugas.pesanan.update-harga')->middleware('auth');
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

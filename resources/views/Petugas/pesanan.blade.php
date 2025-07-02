@@ -239,9 +239,6 @@
             </div>
         </div>
 
-
-
-
         @push('scripts')
             <script>
                 // Variables for confirmation modal
