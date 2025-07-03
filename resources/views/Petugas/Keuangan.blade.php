@@ -30,7 +30,7 @@
         <div class="bg-white rounded-lg shadow-sm p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-2">Pesanan Selesai</h3>
             <p class="text-3xl font-bold text-primary">{{ $currentMonthOrders->total() }}</p>
-            <p class="text-sm text-gray-500 mt-1">Total pesanan bulan ini</p>
+            <p class="text-sm text-gray-500 mt-1">Pesanan Selesai bulan ini</p>
         </div>
     </div>
 
@@ -64,9 +64,6 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Pendapatan
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Aksi
-                        </th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -83,15 +80,6 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
                             Rp {{ number_format($order->harga_paket, 0, ',', '.') }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="showEditModal({{ $order->id }}, {{ $order->harga_paket }})" 
-                                    class="text-primary hover:text-primary-dark flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                </svg>
-                                Tambah
-                            </button>
                         </td>
                     </tr>
                     @empty
@@ -202,95 +190,6 @@
         });
     });
 
-    // Fungsi untuk menampilkan modal
-    function showEditModal(orderId, currentAmount) {
-        document.getElementById('order_id').value = orderId;
-        document.getElementById('current_amount').value = currentAmount;
-        document.getElementById('editModal').classList.remove('hidden');
-        document.getElementById('harga_paket').focus();
-    }
-
-    // Fungsi untuk menyembunyikan modal
-    function hideEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-    }
-    // Form Submission
-    document.getElementById('editForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const orderId = document.getElementById('order_id').value;
-    const formData = new FormData(this);
-    
-    const submitBtn = document.querySelector('#editForm button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="flex items-center"><svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan...</span>';
-
-    try {
-        const response = await fetch(`/petugas/pesanan/${orderId}/update-harga`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Terjadi kesalahan');
-        }
-
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: data.message,
-                showConfirmButton: false,
-                timer: 1500
-            });
-            setTimeout(() => location.reload(), 1600);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: error.message || 'Terjadi kesalahan saat menyimpan',
-        });
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Simpan';
-    }
-});
 </script>
-<style>
-    /* Animasi modal */
-.modal-enter {
-    opacity: 0;
-    transform: translateY(-20px);
-}
-.modal-enter-active {
-    opacity: 1;
-    transform: translateY(0);
-    transition: all 200ms;
-}
-.modal-exit {
-    opacity: 1;
-}
-.modal-exit-active {
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 200ms;
-}
 
-/* Loading spinner */
-.animate-spin {
-    animation: spin 1s linear infinite;
-}
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-</style>
 @endsection

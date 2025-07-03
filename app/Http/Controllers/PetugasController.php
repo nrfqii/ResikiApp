@@ -218,20 +218,20 @@ class PetugasController extends Controller
 
         // Memulai query dengan eager loading relasi yang dibutuhkan
         $query = Pesanan::with(['user', 'paket_jasa'])
-                        ->whereIn('status', [Pesanan::STATUS_SELESAI, Pesanan::STATUS_DIBATALKAN]); // Termasuk status dibatalkan
+            ->whereIn('status', [Pesanan::STATUS_SELESAI, Pesanan::STATUS_DIBATALKAN]); // Termasuk status dibatalkan
 
         // Filter berdasarkan pencarian (ID Pesanan, Konsumen, atau Layanan)
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('id', 'like', '%' . $search . '%')
-                  ->orWhereHas('user', function ($user) use ($search) {
-                      $user->where('name', 'like', '%' . $search . '%');
-                  })
-                  ->orWhere('custom_request', 'like', '%' . $search . '%') // Tambahkan pencarian custom_request
-                  ->orWhereHas('paket_jasa', function ($paket) use ($search) {
-                      $paket->where('nama_paket', 'like', '%' . $search . '%');
-                  });
+                    ->orWhereHas('user', function ($user) use ($search) {
+                        $user->where('name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhere('custom_request', 'like', '%' . $search . '%') // Tambahkan pencarian custom_request
+                    ->orWhereHas('paket_jasa', function ($paket) use ($search) {
+                        $paket->where('nama_paket', 'like', '%' . $search . '%');
+                    });
             });
         }
 
@@ -248,7 +248,7 @@ class PetugasController extends Controller
         if ($request->filled('bulan')) {
             $bulan = Carbon::parse($request->input('bulan'));
             $query->whereYear('updated_at', $bulan->year)
-                  ->whereMonth('updated_at', $bulan->month);
+                ->whereMonth('updated_at', $bulan->month);
         }
 
         // Mengurutkan berdasarkan tanggal terbaru dan melakukan paginasi
@@ -309,8 +309,8 @@ class PetugasController extends Controller
         // Pendapatan bulan ini
         $currentMonthIncome = Pesanan::where('status', Pesanan::STATUS_SELESAI)
             ->where('petugas_id', Auth::id())
-            ->whereMonth('tanggal', Carbon::now()->month)
-            ->whereYear('tanggal', Carbon::now()->year)
+            ->whereMonth('updated_at', Carbon::now()->month)
+            ->whereYear('updated_at', Carbon::now()->year)
             ->sum('harga_paket');
 
         // Data chart 6 bulan terakhir
@@ -319,8 +319,8 @@ class PetugasController extends Controller
             $date = Carbon::now()->subMonths($i);
             $income = Pesanan::where('status', Pesanan::STATUS_SELESAI)
                 ->where('petugas_id', Auth::id())
-                ->whereMonth('tanggal', $date->month)
-                ->whereYear('tanggal', $date->year)
+                ->whereMonth('updated_at', $date->month)
+                ->whereYear('updated_at', $date->year)
                 ->sum('harga_paket');
 
             $monthlyIncome[] = [
@@ -335,9 +335,9 @@ class PetugasController extends Controller
         $currentMonthOrders = Pesanan::with(['paket_jasa'])
             ->where('status', Pesanan::STATUS_SELESAI)
             ->where('petugas_id', Auth::id())
-            ->whereMonth('tanggal', Carbon::now()->month)
-            ->whereYear('tanggal', Carbon::now()->year)
-            ->orderBy('tanggal', 'desc')
+            ->whereMonth('updated_at', Carbon::now()->month)
+            ->whereYear('updated_at', Carbon::now()->year)
+            ->orderBy('updated_at', 'desc')
             ->paginate(10);
 
         return view('Petugas.keuangan', compact(
@@ -348,31 +348,31 @@ class PetugasController extends Controller
         ));
     }
 
-    public function updateHarga(Request $request, $id)
-{
-    $request->validate([
-        'harga_paket' => 'required|numeric|min:1',
-        '_token' => 'required'
-    ]);
+    // public function updateHarga(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'harga_paket' => 'required|numeric|min:1',
+    //         '_token' => 'required'
+    //     ]);
 
-    try {
-        $pesanan = Pesanan::findOrFail($id);
-        $tambahan = $request->harga_paket;
-        
-        $pesanan->harga_paket += $tambahan;
-        $pesanan->save();
+    //     try {
+    //         $pesanan = Pesanan::findOrFail($id);
+    //         $tambahan = $request->harga_paket;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Berhasil menambahkan Rp '.number_format($tambahan, 0, ',', '.'),
-            'new_amount' => 'Rp '.number_format($pesanan->harga_paket, 0, ',', '.')
-        ]);
+    //         $pesanan->harga_paket += $tambahan;
+    //         $pesanan->save();
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Gagal menyimpan: '.$e->getMessage()
-        ], 500);
-    }
-}
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Berhasil menambahkan Rp ' . number_format($tambahan, 0, ',', '.'),
+    //             'new_amount' => 'Rp ' . number_format($pesanan->harga_paket, 0, ',', '.')
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Gagal menyimpan: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 }

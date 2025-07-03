@@ -65,6 +65,10 @@
                             Layanan
                         </th>
                         <th scope="col"
+                            class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                            Harga
+                        </th>
+                        <th scope="col"
                             class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                             Tanggal Selesai / Dibatalkan
                         </th>
@@ -80,7 +84,8 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {{-- Loop melalui data riwayat pesanan dari controller --}}
-                    @forelse($historicalOrders as $order) {{-- Menghapus $index karena ID Pesanan sudah ada --}}
+                    @forelse($historicalOrders as $order)
+                        {{-- Menghapus $index karena ID Pesanan sudah ada --}}
                         <tr>
                             <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                 #{{ $order->id }}
@@ -90,6 +95,9 @@
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
                                 {{ $order->nama_paket ?? $order->custom_request }}
+                            </td>
+                            <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden sm:table-cell">
+                                Rp {{ number_format($order->harga_paket, 0, ',', '.') }}
                             </td>
                             <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-600 hidden md:table-cell">
                                 {{ \Carbon\Carbon::parse($order->updated_at)->format('d M Y, H:i') }} WIB
