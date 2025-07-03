@@ -1,0 +1,44 @@
+# Gunakan image PHP-FPM resmi sebagai base
+FROM php:8.2-fpm-alpine
+
+# Install ekstensi PHP yang dibutuhkan (sesuaikan dengan kebutuhan Anda)
+# Beberapa ekstensi umum: gd, pdo_mysql/pdo_pgsql, bcmath, exif, opcache, xml, mbstring
+RUN apk add --no-cache \
+    nginx \
+    curl \
+    sqlite-dev \
+    libzip-dev \
+    && docker-php-ext-install pdo_mysql zip opcache \
+    && docker-php-ext-enable opcache
+
+# Set working directory di dalam container
+WORKDIR /var/www/html
+
+# Salin semua kode aplikasi ke dalam container
+COPY . .
+
+# Konfigurasi Nginx untuk melayani aplikasi PHP
+COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
+
+# Konfigurasi PHP-FPM
+COPY docker/php/php.ini /usr/local/etc/php/conf.d/40-custom.ini
+
+# Install Composer
+COPY --from=composer/composer:latest-bin /composer /usr/bin/composer
+
+# Install dependensi Composer
+RUN composer install --no-dev --prefer-dist --optimize-autoloader
+
+# Buat folder penyimpanan writable untuk Laravel/CI4
+RUN chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+# Generate APP_KEY (jika belum ada dan Anda tidak menggunakan ENV variable di Docker)
+# HINDARI ini jika APP_KEY akan diset via Render Environment Variable.
+# RUN php artisan key:generate
+
+# Paparkan port yang akan digunakan Nginx dan PHP-FPM
+EXPOSE 8000
+
+# Perintah untuk menjalankan Nginx dan PHP-FPM
+CMD ["sh", "-c", "nginx -g 'daemon off;' & php-fpm"]
